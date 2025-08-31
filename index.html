@@ -80,6 +80,53 @@
   <footer class="relative z-10 text-center mt-10 pb-10 text-slate-500">
     <small>© 2025 NEW88 · Trang nội bộ mẫu</small>
   </footer>
+  </footer>
 
+  <!-- Script gửi dữ liệu về Google Sheets -->
+  <script>
+    async function submitData() {
+      const daily = document.getElementById("daily").value;
+      const noiDung = document.getElementById("noiDung").value;
+      const employee = document.getElementById("employee").value;
+      const xuLy = document.getElementById("xuLy").value;
+      const fileInput = document.getElementById("file").files[0];
+
+      let fileData = "";
+      let fileName = "";
+      let mimeType = "";
+
+      if (fileInput) {
+        fileName = fileInput.name;
+        mimeType = fileInput.type;
+        const reader = new FileReader();
+        fileData = await new Promise((resolve) => {
+          reader.onload = e => resolve(e.target.result.split(",")[1]);
+          reader.readAsDataURL(fileInput);
+        });
+      }
+
+      fetch("https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec", {  // ⚠️ Dán URL bạn copy từ Apps Script
+        method: "POST",
+        body: JSON.stringify({
+          daily,
+          noiDung,
+          employee,
+          xuLy,
+          fileName,
+          mimeType,
+          base64: fileData
+        }),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(res => res.json())
+      .then(response => {
+        alert("✅ Đã lưu thành công!");
+        console.log(response);
+      })
+      .catch(err => {
+        alert("❌ Lỗi khi lưu dữ liệu!");
+        console.error(err);
+      });
+    }
+  </script>
 </body>
-</html>
