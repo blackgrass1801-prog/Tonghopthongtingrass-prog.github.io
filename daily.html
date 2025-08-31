@@ -41,7 +41,7 @@
 
           <label class="text-sm font-semibold mt-3" for="file">Chọn file (Ảnh/Excel/PDF)</label>
           <input id="file" type="file" class="w-full border rounded-lg p-3"
-                 accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv" />
+                 accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv,.gif" />
 
           <div id="filePreview" class="mt-2"></div>
         </div>
@@ -89,7 +89,6 @@
     function parseDriveId(url){
       const m = String(url||'').match(/\/file\/d\/([^/]+)\//);
       if (m && m[1]) return m[1];
-      // thêm trường hợp share link dạng open?id=
       const m2 = String(url||'').match(/[?&]id=([^&]+)/);
       return m2 ? m2[1] : '';
     }
@@ -107,7 +106,7 @@
       const box = document.getElementById('filePreview');
       if (!f) { box.innerHTML = ''; return; }
 
-      const isImg = f.type.startsWith('image/') || isImageByExt(f.name);
+      const isImg = (f.type && f.type.startsWith('image/')) || isImageByExt(f.name);
       const size = formatFileSize(f.size);
       if (isImg) {
         const url = URL.createObjectURL(f);
@@ -131,7 +130,7 @@
       }
     });
 
-    /* ===== UPLOAD ===== */
+    /* ===== UPLOAD (có log lỗi chi tiết) ===== */
     async function submitData() {
       const daiLy    = document.getElementById("daiLy").value.trim();
       const noiDung  = document.getElementById("noiDung").value.trim();
@@ -170,9 +169,12 @@
             timeSent
           })
         });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const json = await res.json().catch(() => ({}));
-        if (!json.ok) throw new Error(json.error || "Upload thất bại");
+
+        const raw = await res.text(); let json = null;
+        try { json = JSON.parse(raw); } catch {}
+        if (!res.ok) throw new Error(`HTTP ${res.status} – ${raw.slice(0,200)}`);
+        if (!json || !json.ok) throw new Error(json?.error || `Response JSON invalid: ${raw.slice(0,200)}`);
+
         alert("✅ Đã lưu thành công!");
         document.getElementById("daiLy").value = "";
         document.getElementById("noiDung").value = "";
@@ -181,8 +183,8 @@
         document.getElementById("file").value = "";
         document.getElementById("filePreview").innerHTML = "";
       } catch (e) {
-        console.error(e);
-        alert("❌ Lỗi khi lưu dữ liệu!");
+        console.error("UPLOAD ERROR:", e);
+        alert("❌ Lỗi khi lưu dữ liệu: " + (e?.message || e));
       } finally {
         btn.disabled = false; btn.textContent = "📤 Upload";
       }
@@ -199,9 +201,10 @@
 
       try {
         const res = await fetch(WEB_APP_URL + "?action=list", { method: "GET", cache: "no-store" });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.error || "Response not ok");
+        const raw = await res.text(); let json = null;
+        try { json = JSON.parse(raw); } catch {}
+        if (!res.ok) throw new Error(`HTTP ${res.status} – ${raw.slice(0,200)}`);
+        if (!json || !json.ok) throw new Error(json?.error || `Response JSON invalid: ${raw.slice(0,200)}`);
 
         const rows = Array.isArray(json.rows) ? json.rows : [];
 
@@ -240,7 +243,7 @@
           </div>`;
       } catch (e) {
         console.error("searchData error:", e);
-        alert("❌ Lỗi lấy dữ liệu tìm kiếm!");
+        alert("❌ Lỗi lấy dữ liệu tìm kiếm: " + (e?.message || e));
         box.innerHTML = "";
       }
     }
@@ -276,17 +279,16 @@
       let openUrl = '';
 
       if (fileUrl) {
-        // nếu là link Drive /file/d/... → đổi sang uc?export=view để hiển thị
-        url = toDriveViewUrl(fileUrl);
-        openUrl = fileUrl;
+        url = toDriveViewUrl(fileUrl);  // hiển thị được trong <img>
+        openUrl = fileUrl;              // link gốc để mở tab mới
       } else if (base64 && (mimeType||'').startsWith('image/')) {
         url = `data:${mimeType};base64,${base64}`;
         openUrl = url;
       }
 
       const safeName = escapeHTML(fileName || (mimeType ? `Tệp (${mimeType})` : 'Tệp đính kèm'));
-
       const looksImage = (mimeType||'').startsWith('image/') || isImageByExt(fileName) || (url && url.startsWith('data:image'));
+
       if (url && looksImage) {
         return `
           <div class="flex items-center gap-3">
