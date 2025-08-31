@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🧪 Bài thi tự luận</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}
+    .soft-shadow{box-shadow:0 10px 25px rgba(0,0,0,.08)}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50">
+  <main class="max-w-3xl mx-auto px-4 py-10 space-y-8">
+
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-3xl font-extrabold tracking-wide" style="color:#00A3C6">🧪 Bài thi tự luận</h1>
+      <p class="text-slate-600 mt-2">Nhập tên của bạn, bấm <b>Bắt đầu</b> để làm bài. Khi hoàn thành hãy <b>Nộp bài</b>.</p>
+    </header>
+
+    <!-- Screen 1: nhập tên -->
+    <section id="screenWelcome" class="glass soft-shadow rounded-2xl p-6">
+      <label class="block text-sm font-semibold mb-2">Tên nhân viên</label>
+      <input id="employeeName" class="w-full border rounded-lg p-3" placeholder="Nhập tên của bạn"/>
+      <button id="btnStart" class="mt-4 bg-sky-600 text-white font-semibold px-5 py-3 rounded-lg hover:bg-sky-700">
+        ▶️ Bắt đầu
+      </button>
+    </section>
+
+    <!-- Screen 2: làm bài -->
+    <section id="screenQuiz" class="hidden glass soft-shadow rounded-2xl p-6">
+      <h2 class="text-xl font-bold mb-4">Câu hỏi</h2>
+
+      <!-- Bạn có thể thay đổi / thêm bớt câu ở dưới -->
+      <div class="space-y-5">
+        <div>
+          <p class="font-semibold">1) Mô tả ngắn gọn quy trình xử lý khi nhận phản ánh của đại lý?</p>
+          <textarea class="quiz-answer w-full border rounded-lg p-3 mt-2" rows="4" placeholder="Câu trả lời của bạn..."></textarea>
+        </div>
+        <div>
+          <p class="font-semibold">2) Hãy nêu 3 tiêu chí đánh giá mức độ rủi ro của 1 case?</p>
+          <textarea class="quiz-answer w-full border rounded-lg p-3 mt-2" rows="4" placeholder="Câu trả lời của bạn..."></textarea>
+        </div>
+        <div>
+          <p class="font-semibold">3) Khi nào cần chuyển case lên cấp quản lý và bạn cần chuẩn bị gì?</p>
+          <textarea class="quiz-answer w-full border rounded-lg p-3 mt-2" rows="4" placeholder="Câu trả lời của bạn..."></textarea>
+        </div>
+      </div>
+
+      <button id="btnSubmit" class="mt-6 bg-emerald-600 text-white font-semibold px-5 py-3 rounded-lg hover:bg-emerald-700">
+        📤 Nộp bài
+      </button>
+    </section>
+
+    <!-- Screen 3: cảm ơn -->
+    <section id="screenThank" class="hidden glass soft-shadow rounded-2xl p-6 text-center">
+      <h2 class="text-xl font-bold mb-2">🎉 Cảm ơn bạn!</h2>
+      <p class="text-slate-700 leading-relaxed">
+        Cảm ơn bạn đã cố gắng hoàn thành phần thi của mình, bạn vui lòng đợi công bố kết quả từ bộ phận liên quan. Cảm ơn.
+      </p>
+      <a href="index.html" class="inline-block mt-5 text-sky-600 hover:underline">⟵ Quay về trang chính</a>
+    </section>
+
+  </main>
+
+  <script>
+    // 👉 THAY bằng Web App URL của Apps Script của bạn
+    const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_WEB_APP_URL/exec";
+
+    const $ = s => document.querySelector(s);
+    const screenWelcome = $("#screenWelcome");
+    const screenQuiz    = $("#screenQuiz");
+    const screenThank   = $("#screenThank");
+    const btnStart      = $("#btnStart");
+    const btnSubmit     = $("#btnSubmit");
+    const employeeName  = $("#employeeName");
+
+    btnStart.addEventListener("click", () => {
+      const name = employeeName.value.trim();
+      if (!name) { alert("Vui lòng nhập tên!"); return; }
+      screenWelcome.classList.add("hidden");
+      screenQuiz.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    btnSubmit.addEventListener("click", async () => {
+      const name = employeeName.value.trim();
+      const answers = [...document.querySelectorAll(".quiz-answer")].map((el, idx) => ({
+        q: idx + 1, a: el.value.trim()
+      }));
+
+      // Kiểm tra ít nhất có trả lời
+      if (answers.every(x => !x.a)) {
+        alert("Bạn chưa nhập câu trả lời nào.");
+        return;
+      }
+
+      btnSubmit.disabled = true; btnSubmit.textContent = "Đang nộp...";
+
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          // Không set Content-Type để tránh CORS preflight với Apps Script
+          body: JSON.stringify({
+            action: "submit-quiz",
+            employee: name,
+            answers
+          })
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || "Submit failed");
+
+        screenQuiz.classList.add("hidden");
+        screenThank.classList.remove("hidden");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (e) {
+        console.error(e);
+        alert("❌ Lỗi nộp bài, vui lòng thử lại!");
+      } finally {
+        btnSubmit.disabled = false; btnSubmit.textContent = "📤 Nộp bài";
+      }
+    });
+  </script>
+</body>
+</html>
