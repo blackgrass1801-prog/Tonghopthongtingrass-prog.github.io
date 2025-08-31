@@ -59,3 +59,52 @@
   </script>
 </body>
 </html>
+<!-- Tìm kiếm Dữ liệu -->
+<section class="max-w-2xl mx-auto glass soft-shadow rounded-2xl p-6 my-10">
+  <h2 class="text-xl font-bold mb-4">🔍 Tìm kiếm Dữ liệu</h2>
+  
+  <label for="searchDaily">Tìm theo Đại lý:</label>
+  <input id="searchDaily" class="w-full border p-2 rounded mb-3" placeholder="Nhập từ khóa đại lý">
+
+  <label for="searchNoiDung">Tìm theo Nội dung:</label>
+  <input id="searchNoiDung" class="w-full border p-2 rounded mb-3" placeholder="Nhập từ khóa nội dung">
+
+  <button onclick="searchData()" class="bg-green-600 text-white px-4 py-2 rounded">
+    🔎 Tìm kiếm
+  </button>
+
+  <!-- Kết quả -->
+  <div id="searchResults" class="mt-4 text-sm text-slate-700"></div>
+</section>
+
+<script>
+async function searchData() {
+  const searchDaily = document.getElementById("searchDaily").value.trim().toLowerCase();
+  const searchNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
+
+  // ⚠️ Dán URL Web App Script giống như phần Upload
+  const res = await fetch("https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec");
+  const data = await res.json();
+
+  // Lọc kết quả
+  const results = data.filter(row => {
+    return (
+      (!searchDaily || row.daily.toLowerCase().includes(searchDaily)) &&
+      (!searchNoiDung || row.noiDung.toLowerCase().includes(searchNoiDung))
+    );
+  });
+
+  // Hiển thị
+  let html = "";
+  if (results.length > 0) {
+    html = `<ul class="list-disc pl-6">` + results.map(r => `
+      <li><b>Đại lý:</b> ${r.daily} | <b>Nội dung:</b> ${r.noiDung} | 
+      <b>Nhân viên:</b> ${r.employee} | <b>Xử lý:</b> ${r.xuLy}</li>
+    `).join("") + `</ul>`;
+  } else {
+    html = "<p class='text-red-600'>❌ Không tìm thấy dữ liệu phù hợp</p>";
+  }
+
+  document.getElementById("searchResults").innerHTML = html;
+}
+</script>
