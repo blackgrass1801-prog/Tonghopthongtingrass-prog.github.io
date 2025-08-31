@@ -123,6 +123,35 @@ function submitData() {
     reader.onload(); // nếu không có file thì vẫn gửi
   }
 }
+<script>
+  async function submitData() {
+    const daily     = document.getElementById("daily").value;
+    const noiDung   = document.getElementById("noiDung").value;
+    const employee  = document.getElementById("employee").value;
+    const xuLy      = document.getElementById("xuLy").value;
+    const fileInput = document.getElementById("file").files[0];
+
+    let fileData = "", fileName = "", mimeType = "";
+    if (fileInput) {
+      fileName = fileInput.name;
+      mimeType = fileInput.type;
+      const reader = new FileReader();
+      fileData = await new Promise((resolve) => {
+        reader.onload = (e) => resolve(e.target.result.split(",")[1]);
+        reader.readAsDataURL(fileInput);
+      });
+    }
+
+    fetch("DÁN_WEB_APP_URL_CỦA_BẠN_VÀO_ĐÂY", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ daily, noiDung, employee, xuLy, fileName, mimeType, base64: fileData })
+    })
+    .then(r => r.json())
+    .then(res => { alert("✅ Đã lưu thành công!"); console.log(res); })
+    .catch(err => { alert("❌ Lỗi khi lưu dữ liệu!"); console.error(err); });
+  }
+</script>
   <footer class="relative z-10 text-center mt-10 pb-10 text-slate-500">
     <small>© 2025 NEW88 · Trang nội bộ mẫu</small>
   </footer>
