@@ -1,110 +1,189 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nhập dữ liệu Đại lý</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nhập & Tìm kiếm dữ liệu Đại lý</title>
+  <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Hai class nhỏ cho nền kính & đổ bóng */
+    .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}
+    .soft-shadow{box-shadow:0 10px 25px rgba(0,0,0,.08)}
+  </style>
 </head>
-<body class="min-h-screen bg-gray-100 flex items-center justify-center">
-  <div class="glass soft-shadow rounded-2xl p-6 w-full max-w-lg">
-    <h2 class="text-xl font-bold mb-4">📌 Nhập dữ liệu Đại lý</h2>
+<body class="min-h-screen bg-slate-50">
+  <main class="w-full px-4 md:px-8 py-10">
+    <div class="mx-auto w-full max-w-screen-lg space-y-10">
 
-    <label>Đại lý</label>
-    <input id="daily" class="w-full border p-2 rounded mb-3" placeholder="Nhập tên đại lý">
+      <!-- 1) NHẬP DỮ LIỆU ĐẠI LÝ -->
+      <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+          📌 Nhập dữ liệu Đại lý
+        </h2>
 
-    <label>Nội dung</label>
-    <textarea id="noiDung" class="w-full border p-2 rounded mb-3" placeholder="Nhập nội dung"></textarea>
+        <div class="mt-6 grid grid-cols-1 gap-4">
+          <label class="text-sm font-semibold" for="daily">Đại lý</label>
+          <input id="daily" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên đại lý" />
 
-    <label>Nhân viên</label>
-    <input id="employee" class="w-full border p-2 rounded mb-3" placeholder="Nhập tên nhân viên">
+          <label class="text-sm font-semibold mt-3" for="noiDung">Nội dung</label>
+          <textarea id="noiDung" rows="4" class="w-full border rounded-lg p-3" placeholder="Nhập nội dung"></textarea>
 
-    <label>Xử lý</label>
-    <input id="xuLy" class="w-full border p-2 rounded mb-3" placeholder="Trạng thái xử lý">
+          <label class="text-sm font-semibold mt-3" for="employee">Nhân viên</label>
+          <input id="employee" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên nhân viên" />
 
-    <label>Chọn file (Ảnh/Excel)</label>
-    <input type="file" id="file" class="mb-3">
+          <label class="text-sm font-semibold mt-3" for="xuLy">Xử lý</label>
+          <input id="xuLy" type="text" class="w-full border rounded-lg p-3" placeholder="Trạng thái xử lý" />
 
-    <button onclick="submitData()" class="bg-green-600 text-white px-4 py-2 rounded">📤 Upload</button>
-  </div>
+          <label class="text-sm font-semibold mt-3" for="file">Chọn file (Ảnh/Excel)</label>
+          <input id="file" type="file" class="w-full border rounded-lg p-3"
+                 accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv" />
+        </div>
+
+        <button
+          onclick="submitData()"
+          class="mt-6 inline-flex items-center gap-2 bg-emerald-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-emerald-700">
+          📤 Upload
+        </button>
+      </section>
+
+      <!-- 2) TÌM KIẾM DỮ LIỆU -->
+      <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+          🔎 Tìm kiếm Dữ liệu
+        </h2>
+
+        <div class="mt-6 grid grid-cols-1 gap-4">
+          <label class="text-sm font-semibold" for="searchDaily">Tìm theo Đại lý</label>
+          <input id="searchDaily" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập từ khóa đại lý" />
+
+          <label class="text-sm font-semibold" for="searchNoiDung">Tìm theo Nội dung</label>
+          <input id="searchNoiDung" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập từ khóa nội dung" />
+        </div>
+
+        <button id="btnSearch"
+          onclick="searchData()"
+          class="mt-6 inline-flex items-center gap-2 bg-sky-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-sky-700">
+          🔍 Tìm kiếm
+        </button>
+
+        <!-- Kết quả -->
+        <div id="searchResults" class="mt-6 text-sm text-slate-700"></div>
+      </section>
+
+    </div>
+  </main>
 
   <script>
+    // ======= CẤU HÌNH CHUNG =======
+    const WEB_APP_URL =
+      "https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec";
+
+    // ======= UPLOAD / LƯU DỮ LIỆU =======
     async function submitData() {
-      const daily = document.getElementById("daily").value;
-      const noiDung = document.getElementById("noiDung").value;
-      const employee = document.getElementById("employee").value;
-      const xuLy = document.getElementById("xuLy").value;
+      const daily     = document.getElementById("daily").value.trim();
+      const noiDung   = document.getElementById("noiDung").value.trim();
+      const employee  = document.getElementById("employee").value.trim();
+      const xuLy      = document.getElementById("xuLy").value.trim();
       const fileInput = document.getElementById("file").files[0];
+
+      if (!daily || !noiDung || !employee || !xuLy) {
+        alert("⚠️ Vui lòng nhập đầy đủ: Đại lý, Nội dung, Nhân viên, Xử lý.");
+        return;
+      }
 
       let fileData = "", fileName = "", mimeType = "";
       if (fileInput) {
         fileName = fileInput.name;
-        mimeType = fileInput.type;
+        mimeType = fileInput.type || "";
         const reader = new FileReader();
         fileData = await new Promise((resolve) => {
-          reader.onload = e => resolve(e.target.result.split(",")[1]);
+          reader.onload = (e) => resolve(String(e.target.result).split(",")[1]);
           reader.readAsDataURL(fileInput);
         });
       }
 
-      fetch("https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec", {
-        method: "POST",
-        body: JSON.stringify({ daily, noiDung, employee, xuLy, fileName, mimeType, base64: fileData }),
-        headers: { "Content-Type": "application/json" }
-      })
-      .then(res => res.json())
-      .then(() => alert("✅ Đã lưu thành công!"))
-      .catch(() => alert("❌ Lỗi khi lưu dữ liệu!"));
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ daily, noiDung, employee, xuLy, fileName, mimeType, base64: fileData })
+        });
+        const json = await res.json().catch(() => ({}));
+        alert("✅ Đã lưu thành công!");
+        console.log("Upload result:", json);
+
+        // Clear form:
+        document.getElementById("daily").value = "";
+        document.getElementById("noiDung").value = "";
+        document.getElementById("employee").value = "";
+        document.getElementById("xuLy").value = "";
+        document.getElementById("file").value = "";
+      } catch (e) {
+        console.error(e);
+        alert("❌ Lỗi khi lưu dữ liệu!");
+      }
+    }
+
+    // ======= TÌM KIẾM DỮ LIỆU =======
+    async function searchData() {
+      const searchDaily   = document.getElementById("searchDaily").value.trim().toLowerCase();
+      const searchNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
+
+      try {
+        // Web App phải hỗ trợ trả JSON khi gọi GET
+        const res = await fetch(WEB_APP_URL);
+        const data = await res.json();
+
+        // Lọc kết quả
+        const results = (Array.isArray(data) ? data : []).filter(row =>
+          (!searchDaily   || String(row.daily   || "").toLowerCase().includes(searchDaily)) &&
+          (!searchNoiDung || String(row.noiDung || "").toLowerCase().includes(searchNoiDung))
+        );
+
+        // Hiển thị kết quả
+        const box = document.getElementById("searchResults");
+        if (!results.length) {
+          box.innerHTML = "<p class='text-red-600'>❌ Không tìm thấy dữ liệu phù hợp</p>";
+          return;
+        }
+
+        // Dạng bảng cho dễ xem
+        const rows = results.map(r => `
+          <tr class="border-b">
+            <td class="px-3 py-2">${escapeHTML(r.daily)}</td>
+            <td class="px-3 py-2">${escapeHTML(r.noiDung)}</td>
+            <td class="px-3 py-2">${escapeHTML(r.employee)}</td>
+            <td class="px-3 py-2">${escapeHTML(r.xuLy)}</td>
+          </tr>
+        `).join("");
+
+        box.innerHTML = `
+          <div class="overflow-auto rounded-lg border">
+            <table class="min-w-full text-left text-sm">
+              <thead class="bg-slate-100 text-slate-700">
+                <tr>
+                  <th class="px-3 py-2">Đại lý</th>
+                  <th class="px-3 py-2">Nội dung</th>
+                  <th class="px-3 py-2">Nhân viên</th>
+                  <th class="px-3 py-2">Xử lý</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      } catch (e) {
+        console.error(e);
+        alert("❌ Lỗi lấy dữ liệu tìm kiếm!");
+      }
+    }
+
+    // Helper an toàn HTML
+    function escapeHTML(s){
+      return String(s ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[c]));
     }
   </script>
 </body>
 </html>
-<!-- Tìm kiếm Dữ liệu -->
-<section class="max-w-2xl mx-auto glass soft-shadow rounded-2xl p-6 my-10">
-  <h2 class="text-xl font-bold mb-4">🔍 Tìm kiếm Dữ liệu</h2>
-  
-  <label for="searchDaily">Tìm theo Đại lý:</label>
-  <input id="searchDaily" class="w-full border p-2 rounded mb-3" placeholder="Nhập từ khóa đại lý">
-
-  <label for="searchNoiDung">Tìm theo Nội dung:</label>
-  <input id="searchNoiDung" class="w-full border p-2 rounded mb-3" placeholder="Nhập từ khóa nội dung">
-
-  <button onclick="searchData()" class="bg-green-600 text-white px-4 py-2 rounded">
-    🔎 Tìm kiếm
-  </button>
-
-  <!-- Kết quả -->
-  <div id="searchResults" class="mt-4 text-sm text-slate-700"></div>
-</section>
-
-<script>
-async function searchData() {
-  const searchDaily = document.getElementById("searchDaily").value.trim().toLowerCase();
-  const searchNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
-
-  // ⚠️ Dán URL Web App Script giống như phần Upload
-  const res = await fetch("https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec");
-  const data = await res.json();
-
-  // Lọc kết quả
-  const results = data.filter(row => {
-    return (
-      (!searchDaily || row.daily.toLowerCase().includes(searchDaily)) &&
-      (!searchNoiDung || row.noiDung.toLowerCase().includes(searchNoiDung))
-    );
-  });
-
-  // Hiển thị
-  let html = "";
-  if (results.length > 0) {
-    html = `<ul class="list-disc pl-6">` + results.map(r => `
-      <li><b>Đại lý:</b> ${r.daily} | <b>Nội dung:</b> ${r.noiDung} | 
-      <b>Nhân viên:</b> ${r.employee} | <b>Xử lý:</b> ${r.xuLy}</li>
-    `).join("") + `</ul>`;
-  } else {
-    html = "<p class='text-red-600'>❌ Không tìm thấy dữ liệu phù hợp</p>";
-  }
-
-  document.getElementById("searchResults").innerHTML = html;
-}
-</script>
