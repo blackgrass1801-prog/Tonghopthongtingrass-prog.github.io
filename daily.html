@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nhập & Tìm kiếm dữ liệu Đại lý</title>
-  <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}
@@ -19,9 +18,7 @@
       <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
         <h1 class="text-4xl font-extrabold text-center mb-6" style="color:#00A3C6;">SHBET</h1>
 
-        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
-          📌 Nhập dữ liệu Đại lý
-        </h2>
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">📌 Nhập dữ liệu Đại lý</h2>
 
         <div class="mt-6 grid grid-cols-1 gap-4">
           <label class="text-sm font-semibold" for="daiLy">Đại lý</label>
@@ -33,7 +30,6 @@
           <label class="text-sm font-semibold mt-3" for="nhanVien">Nhân viên</label>
           <input id="nhanVien" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên nhân viên" />
 
-          <!-- Select Xử lý -->
           <label class="text-sm font-semibold mt-3" for="xuLy">Xử lý</label>
           <select id="xuLy" class="w-full border rounded-lg p-3">
             <option value="">-- Chọn trạng thái --</option>
@@ -47,7 +43,6 @@
           <input id="file" type="file" class="w-full border rounded-lg p-3"
                  accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv" />
 
-          <!-- Preview tệp đã chọn -->
           <div id="filePreview" class="mt-2"></div>
         </div>
 
@@ -58,9 +53,7 @@
 
       <!-- 2) TÌM KIẾM DỮ LIỆU -->
       <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
-        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
-          🔎 Tìm kiếm Dữ liệu
-        </h2>
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">🔎 Tìm kiếm Dữ liệu</h2>
 
         <div class="mt-6 grid grid-cols-1 gap-4">
           <label class="text-sm font-semibold" for="searchdaiLy">Tìm theo Đại lý</label>
@@ -83,7 +76,6 @@
           🔍 Tìm kiếm
         </button>
 
-        <!-- Kết quả -->
         <div id="searchResults" class="mt-6 text-sm text-slate-700"></div>
       </section>
 
@@ -91,16 +83,31 @@
   </main>
 
   <script>
-    // THAY bằng URL Web App (đã Deploy, Who has access = Anyone)
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwQ59NT7IHVv-YPALQuACyt7OntcipOk3oduTz9TxZ2vWh0nDlROZx_SypSDJ3mKWKy/exec";
 
-    // ====== Preview file khi người dùng chọn ======
-    document.getElementById('file').addEventListener('change', async (e) => {
+    /* ===== Helpers: Drive link -> viewable image ===== */
+    function parseDriveId(url){
+      const m = String(url||'').match(/\/file\/d\/([^/]+)\//);
+      if (m && m[1]) return m[1];
+      // thêm trường hợp share link dạng open?id=
+      const m2 = String(url||'').match(/[?&]id=([^&]+)/);
+      return m2 ? m2[1] : '';
+    }
+    function toDriveViewUrl(url){
+      const id = parseDriveId(url);
+      return id ? `https://drive.google.com/uc?export=view&id=${id}` : url;
+    }
+    function isImageByExt(name=''){
+      return /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(name);
+    }
+
+    /* ====== Preview file khi chọn ====== */
+    document.getElementById('file').addEventListener('change', (e) => {
       const f = e.target.files?.[0];
       const box = document.getElementById('filePreview');
       if (!f) { box.innerHTML = ''; return; }
 
-      const isImg = f.type.startsWith('image/');
+      const isImg = f.type.startsWith('image/') || isImageByExt(f.name);
       const size = formatFileSize(f.size);
       if (isImg) {
         const url = URL.createObjectURL(f);
@@ -124,7 +131,7 @@
       }
     });
 
-    // ===== UPLOAD =====
+    /* ===== UPLOAD ===== */
     async function submitData() {
       const daiLy    = document.getElementById("daiLy").value.trim();
       const noiDung  = document.getElementById("noiDung").value.trim();
@@ -152,13 +159,11 @@
         });
       }
 
-      // Thời gian gửi (ISO). Khuyến nghị lưu trực tiếp và trả lại từ server để đồng bộ.
       const timeSent = new Date().toISOString();
 
       try {
         const res = await fetch(WEB_APP_URL, {
           method: "POST",
-          // KHÔNG set 'Content-Type' để tránh CORS preflight của Apps Script
           body: JSON.stringify({
             daiLy, noiDung, nhanVien, xuLy,
             fileName, mimeType, base64: fileData, fileSize,
@@ -169,7 +174,6 @@
         const json = await res.json().catch(() => ({}));
         if (!json.ok) throw new Error(json.error || "Upload thất bại");
         alert("✅ Đã lưu thành công!");
-        // clear
         document.getElementById("daiLy").value = "";
         document.getElementById("noiDung").value = "";
         document.getElementById("nhanVien").value = "";
@@ -184,17 +188,16 @@
       }
     }
 
-    // ===== TÌM KIẾM =====
+    /* ===== TÌM KIẾM ===== */
     async function searchData() {
       const kwDaily   = document.getElementById("searchdaiLy").value.trim().toLowerCase();
       const kwNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
-      const pickXuLy  = document.getElementById("searchXuLy").value; // giữ nguyên chữ hoa/thường
+      const pickXuLy  = document.getElementById("searchXuLy").value;
 
       const box = document.getElementById("searchResults");
       box.innerHTML = "<p class='text-slate-500'>Đang tải dữ liệu...</p>";
 
       try {
-        // QUAN TRỌNG: dùng ?action=list để server trả rows
         const res = await fetch(WEB_APP_URL + "?action=list", { method: "GET", cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const json = await res.json();
@@ -203,14 +206,12 @@
         const rows = Array.isArray(json.rows) ? json.rows : [];
 
         const filtered = rows.filter(r => {
-          const daily   = String(r.daily   || r.daiLy   || "").toLowerCase(); // dự phòng tên cột
+          const daily   = String(r.daily   || r.daiLy   || "").toLowerCase();
           const content = String(r.noiDung || "").toLowerCase();
           const xl      = String(r.xuLy    || "");
-
           const passDaily   = !kwDaily   || daily.includes(kwDaily);
           const passNoiDung = !kwNoiDung || content.includes(kwNoiDung);
           const passXuLy    = (pickXuLy === "--all--" || pickXuLy === "" || xl === pickXuLy);
-
           return passDaily && passNoiDung && passXuLy;
         });
 
@@ -250,12 +251,11 @@
       const nhanVien= escapeHTML(r.nhanVien ?? r.employee ?? '');
       const xuLy    = escapeHTML(r.xuLy ?? '');
 
-      // Các khóa có thể trả về từ server (linh hoạt tên cột)
-      const fileUrl  = r.fileUrl || r.url || r.link || '';
-      const fileName = r.fileName || r.filename || '';
-      const mimeType = r.mimeType || r.mimetype || '';
-      const base64   = r.base64 || '';
-      const timeIso  = r.timeSent || r.timestamp || r.time || '';
+      const fileUrl   = r.thumbUrl || r.fileUrl || r.url || r.link || '';
+      const fileName  = r.fileName || r.filename || '';
+      const mimeType  = r.mimeType || r.mimetype || '';
+      const base64    = r.base64 || '';
+      const timeIso   = r.timeSent || r.timestamp || r.time || '';
 
       const attachCell = renderAttachment({fileUrl, fileName, mimeType, base64});
       const timeCell   = formatTimeVN(timeIso);
@@ -272,41 +272,42 @@
     }
 
     function renderAttachment({fileUrl, fileName, mimeType, base64}){
-      // Ưu tiên URL do server trả về (ví dụ link Drive/PDF/Ảnh). Fallback: data URL nếu server trả base64.
       let url = '';
+      let openUrl = '';
+
       if (fileUrl) {
-        try { url = encodeURI(fileUrl); } catch { url = fileUrl; }
-      } else if (base64 && mimeType?.startsWith('image/')) {
+        // nếu là link Drive /file/d/... → đổi sang uc?export=view để hiển thị
+        url = toDriveViewUrl(fileUrl);
+        openUrl = fileUrl;
+      } else if (base64 && (mimeType||'').startsWith('image/')) {
         url = `data:${mimeType};base64,${base64}`;
+        openUrl = url;
       }
 
       const safeName = escapeHTML(fileName || (mimeType ? `Tệp (${mimeType})` : 'Tệp đính kèm'));
 
-      // Nếu là ảnh => hiện thumbnail + link tải. Nếu không => hiện chip + link.
-      if (url && (mimeType?.startsWith('image/') || url.startsWith('data:image'))) {
+      const looksImage = (mimeType||'').startsWith('image/') || isImageByExt(fileName) || (url && url.startsWith('data:image'));
+      if (url && looksImage) {
         return `
           <div class="flex items-center gap-3">
-            <a href="${url}" target="_blank" class="block">
+            <a href="${openUrl || url}" target="_blank" class="block">
               <img src="${url}" alt="img" class="h-12 w-12 rounded object-cover border" />
             </a>
-            <a href="${url}" target="_blank" class="text-sky-700 hover:underline truncate max-w-[220px]">${safeName}</a>
+            <a href="${openUrl || url}" target="_blank" class="text-sky-700 hover:underline truncate max-w-[220px]">${safeName}</a>
           </div>`;
       }
 
-      if (url) {
-        return `<a href="${url}" target="_blank" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-700">📎 <span class="truncate max-w-[240px]">${safeName}</span></a>`;
+      if (openUrl || url) {
+        return `<a href="${openUrl || url}" target="_blank" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-700">📎 <span class="truncate max-w-[240px]">${safeName}</span></a>`;
       }
-
-      // Không có URL nhưng có tên tệp
       if (fileName) {
         return `<span class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-600">📎 <span class="truncate max-w-[240px]">${safeName}</span></span>`;
       }
-
       return '<span class="text-slate-400">—</span>';
     }
 
     function escapeHTML(s){
-      return String(s ?? "").replace(/[&<>"']/g, c => ({
+      return String(s ?? "").replace(/[&<>\"']/g, c => ({
         "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
       }[c]));
     }
@@ -315,7 +316,6 @@
       if (!iso) return '<span class="text-slate-400">—</span>';
       const d = new Date(iso);
       if (isNaN(d.getTime())) return escapeHTML(String(iso));
-      // Asia/Phnom_Penh (GMT+7) — hiển thị dd/MM/yyyy HH:mm
       try {
         return new Intl.DateTimeFormat('vi-VN', {
           timeZone: 'Asia/Phnom_Penh',
