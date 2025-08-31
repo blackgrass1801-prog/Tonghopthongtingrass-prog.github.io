@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nhập & Tìm kiếm dữ liệu Đại lý</title>
+  <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}
@@ -18,7 +19,9 @@
       <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
         <h1 class="text-4xl font-extrabold text-center mb-6" style="color:#00A3C6;">SHBET</h1>
 
-        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">📌 Nhập dữ liệu Đại lý</h2>
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+          📌 Nhập dữ liệu Đại lý
+        </h2>
 
         <div class="mt-6 grid grid-cols-1 gap-4">
           <label class="text-sm font-semibold" for="daiLy">Đại lý</label>
@@ -30,6 +33,7 @@
           <label class="text-sm font-semibold mt-3" for="nhanVien">Nhân viên</label>
           <input id="nhanVien" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên nhân viên" />
 
+          <!-- Select Xử lý -->
           <label class="text-sm font-semibold mt-3" for="xuLy">Xử lý</label>
           <select id="xuLy" class="w-full border rounded-lg p-3">
             <option value="">-- Chọn trạng thái --</option>
@@ -39,11 +43,9 @@
             <option>Hủy hợp tác</option>
           </select>
 
-          <label class="text-sm font-semibold mt-3" for="file">Chọn file (Ảnh/Excel/PDF)</label>
+          <label class="text-sm font-semibold mt-3" for="file">Chọn file (Ảnh/Excel)</label>
           <input id="file" type="file" class="w-full border rounded-lg p-3"
-                 accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv,.gif" />
-
-          <div id="filePreview" class="mt-2"></div>
+                 accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv" />
         </div>
 
         <button id="btnUpload" onclick="submitData()" class="mt-6 inline-flex items-center gap-2 bg-emerald-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-emerald-700">
@@ -53,7 +55,9 @@
 
       <!-- 2) TÌM KIẾM DỮ LIỆU -->
       <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
-        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">🔎 Tìm kiếm Dữ liệu</h2>
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+          🔎 Tìm kiếm Dữ liệu
+        </h2>
 
         <div class="mt-6 grid grid-cols-1 gap-4">
           <label class="text-sm font-semibold" for="searchdaiLy">Tìm theo Đại lý</label>
@@ -76,6 +80,7 @@
           🔍 Tìm kiếm
         </button>
 
+        <!-- Kết quả -->
         <div id="searchResults" class="mt-6 text-sm text-slate-700"></div>
       </section>
 
@@ -83,54 +88,10 @@
   </main>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFhVYkgI2u66kNZeHMUkdcGTP5Ef0prvzVS-M59ezoSiiJP4sYmdbJXwno4uk0z6ms/exec";
+    // THAY bằng URL Web App (đã Deploy, Who has access = Anyone)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby9DbXjQdmMIbHtcHKadOBQiH9o0vhueUJNIacgbdL88hakgmqXJCbF8h2dJeEUc0Qn/exec";
 
-    /* ===== Helpers: Drive link -> viewable image ===== */
-    function parseDriveId(url){
-      const m = String(url||'').match(/\/file\/d\/([^/]+)\//);
-      if (m && m[1]) return m[1];
-      const m2 = String(url||'').match(/[?&]id=([^&]+)/);
-      return m2 ? m2[1] : '';
-    }
-    function toDriveViewUrl(url){
-      const id = parseDriveId(url);
-      return id ? `https://drive.google.com/uc?export=view&id=${id}` : url;
-    }
-    function isImageByExt(name=''){
-      return /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(name);
-    }
-
-    /* ====== Preview file khi chọn ====== */
-    document.getElementById('file').addEventListener('change', (e) => {
-      const f = e.target.files?.[0];
-      const box = document.getElementById('filePreview');
-      if (!f) { box.innerHTML = ''; return; }
-
-      const isImg = (f.type && f.type.startsWith('image/')) || isImageByExt(f.name);
-      const size = formatFileSize(f.size);
-      if (isImg) {
-        const url = URL.createObjectURL(f);
-        box.innerHTML = `
-          <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border">
-            <img src="${url}" alt="preview" class="h-16 w-16 object-cover rounded" />
-            <div class="min-w-0">
-              <div class="font-medium truncate">${escapeHTML(f.name)}</div>
-              <div class="text-xs text-slate-500">${escapeHTML(f.type || 'image')}, ${size}</div>
-            </div>
-          </div>`;
-      } else {
-        box.innerHTML = `
-          <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border">
-            <div class="h-10 w-10 rounded bg-slate-200 flex items-center justify-center text-slate-700">📎</div>
-            <div class="min-w-0">
-              <div class="font-medium truncate">${escapeHTML(f.name)}</div>
-              <div class="text-xs text-slate-500">${escapeHTML(f.type || 'file')}, ${size}</div>
-            </div>
-          </div>`;
-      }
-    });
-
-    /* ===== UPLOAD (có log lỗi chi tiết) ===== */
+    // ===== UPLOAD =====
     async function submitData() {
       const daiLy    = document.getElementById("daiLy").value.trim();
       const noiDung  = document.getElementById("noiDung").value.trim();
@@ -146,11 +107,10 @@
       const btn = document.getElementById("btnUpload");
       btn.disabled = true; btn.textContent = "Đang gửi...";
 
-      let fileData = "", fileName = "", mimeType = "", fileSize = 0;
+      let fileData = "", fileName = "", mimeType = "";
       if (fileInput) {
         fileName = fileInput.name;
         mimeType = fileInput.type || "";
-        fileSize = fileInput.size || 0;
         const reader = new FileReader();
         fileData = await new Promise((resolve) => {
           reader.onload = (e) => resolve(String(e.target.result).split(",")[1]);
@@ -158,63 +118,57 @@
         });
       }
 
-      const timeSent = new Date().toISOString();
-
       try {
         const res = await fetch(WEB_APP_URL, {
           method: "POST",
-          body: JSON.stringify({
-            daiLy, noiDung, nhanVien, xuLy,
-            fileName, mimeType, base64: fileData, fileSize,
-            timeSent
-          })
+          // KHÔNG set 'Content-Type' để tránh CORS preflight của Apps Script
+          body: JSON.stringify({ daiLy, noiDung, nhanVien, xuLy, fileName, mimeType, base64: fileData })
         });
-
-        const raw = await res.text(); let json = null;
-        try { json = JSON.parse(raw); } catch {}
-        if (!res.ok) throw new Error(`HTTP ${res.status} – ${raw.slice(0,200)}`);
-        if (!json || !json.ok) throw new Error(json?.error || `Response JSON invalid: ${raw.slice(0,200)}`);
-
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json().catch(() => ({}));
+        if (!json.ok) throw new Error(json.error || "Upload thất bại");
         alert("✅ Đã lưu thành công!");
+        // clear
         document.getElementById("daiLy").value = "";
         document.getElementById("noiDung").value = "";
         document.getElementById("nhanVien").value = "";
         document.getElementById("xuLy").value = "";
         document.getElementById("file").value = "";
-        document.getElementById("filePreview").innerHTML = "";
       } catch (e) {
-        console.error("UPLOAD ERROR:", e);
-        alert("❌ Lỗi khi lưu dữ liệu: " + (e?.message || e));
+        console.error(e);
+        alert("❌ Lỗi khi lưu dữ liệu!");
       } finally {
         btn.disabled = false; btn.textContent = "📤 Upload";
       }
     }
 
-    /* ===== TÌM KIẾM ===== */
+    // ===== TÌM KIẾM =====
     async function searchData() {
       const kwDaily   = document.getElementById("searchdaiLy").value.trim().toLowerCase();
       const kwNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
-      const pickXuLy  = document.getElementById("searchXuLy").value;
+      const pickXuLy  = document.getElementById("searchXuLy").value; // giữ nguyên chữ hoa/thường
 
       const box = document.getElementById("searchResults");
       box.innerHTML = "<p class='text-slate-500'>Đang tải dữ liệu...</p>";
 
       try {
+        // QUAN TRỌNG: dùng ?action=list để server trả rows
         const res = await fetch(WEB_APP_URL + "?action=list", { method: "GET", cache: "no-store" });
-        const raw = await res.text(); let json = null;
-        try { json = JSON.parse(raw); } catch {}
-        if (!res.ok) throw new Error(`HTTP ${res.status} – ${raw.slice(0,200)}`);
-        if (!json || !json.ok) throw new Error(json?.error || `Response JSON invalid: ${raw.slice(0,200)}`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || "Response not ok");
 
         const rows = Array.isArray(json.rows) ? json.rows : [];
 
         const filtered = rows.filter(r => {
-          const daily   = String(r.daily   || r.daiLy   || "").toLowerCase();
+          const daily   = String(r.daily   || r.daiLy   || "").toLowerCase(); // dự phòng tên cột
           const content = String(r.noiDung || "").toLowerCase();
           const xl      = String(r.xuLy    || "");
+
           const passDaily   = !kwDaily   || daily.includes(kwDaily);
           const passNoiDung = !kwNoiDung || content.includes(kwNoiDung);
           const passXuLy    = (pickXuLy === "--all--" || pickXuLy === "" || xl === pickXuLy);
+
           return passDaily && passNoiDung && passXuLy;
         });
 
@@ -223,7 +177,14 @@
           return;
         }
 
-        const htmlRows = filtered.map(r => renderRow(r)).join("");
+        const htmlRows = filtered.map(r => `
+          <tr class="border-b">
+            <td class="px-3 py-2">${escapeHTML(r.daily ?? r.daiLy ?? '')}</td>
+            <td class="px-3 py-2">${escapeHTML(r.noiDung ?? '')}</td>
+            <td class="px-3 py-2">${escapeHTML(r.nhanVien ?? r.employee ?? '')}</td>
+            <td class="px-3 py-2">${escapeHTML(r.xuLy ?? '')}</td>
+          </tr>
+        `).join("");
 
         box.innerHTML = `
           <div class="overflow-auto rounded-lg border">
@@ -234,8 +195,6 @@
                   <th class="px-3 py-2">Nội dung</th>
                   <th class="px-3 py-2">Nhân viên</th>
                   <th class="px-3 py-2">Trạng thái xử lý</th>
-                  <th class="px-3 py-2">Tệp đính kèm</th>
-                  <th class="px-3 py-2">Thời gian</th>
                 </tr>
               </thead>
               <tbody>${htmlRows}</tbody>
@@ -243,100 +202,15 @@
           </div>`;
       } catch (e) {
         console.error("searchData error:", e);
-        alert("❌ Lỗi lấy dữ liệu tìm kiếm: " + (e?.message || e));
+        alert("❌ Lỗi lấy dữ liệu tìm kiếm!");
         box.innerHTML = "";
       }
     }
 
-    function renderRow(r){
-      const daily   = escapeHTML(r.daily ?? r.daiLy ?? '');
-      const noiDung = escapeHTML(r.noiDung ?? '');
-      const nhanVien= escapeHTML(r.nhanVien ?? r.employee ?? '');
-      const xuLy    = escapeHTML(r.xuLy ?? '');
-
-      const fileUrl   = r.thumbUrl || r.fileUrl || r.url || r.link || '';
-      const fileName  = r.fileName || r.filename || '';
-      const mimeType  = r.mimeType || r.mimetype || '';
-      const base64    = r.base64 || '';
-      const timeIso   = r.timeSent || r.timestamp || r.time || '';
-
-      const attachCell = renderAttachment({fileUrl, fileName, mimeType, base64});
-      const timeCell   = formatTimeVN(timeIso);
-
-      return `
-        <tr class="border-b align-top">
-          <td class="px-3 py-2">${daily}</td>
-          <td class="px-3 py-2">${noiDung}</td>
-          <td class="px-3 py-2">${nhanVien}</td>
-          <td class="px-3 py-2">${xuLy}</td>
-          <td class="px-3 py-2">${attachCell}</td>
-          <td class="px-3 py-2 whitespace-nowrap">${timeCell}</td>
-        </tr>`;
-    }
-
-    function renderAttachment({fileUrl, fileName, mimeType, base64}){
-      let url = '';
-      let openUrl = '';
-
-      if (fileUrl) {
-        url = toDriveViewUrl(fileUrl);  // hiển thị được trong <img>
-        openUrl = fileUrl;              // link gốc để mở tab mới
-      } else if (base64 && (mimeType||'').startsWith('image/')) {
-        url = `data:${mimeType};base64,${base64}`;
-        openUrl = url;
-      }
-
-      const safeName = escapeHTML(fileName || (mimeType ? `Tệp (${mimeType})` : 'Tệp đính kèm'));
-      const looksImage = (mimeType||'').startsWith('image/') || isImageByExt(fileName) || (url && url.startsWith('data:image'));
-
-      if (url && looksImage) {
-        return `
-          <div class="flex items-center gap-3">
-            <a href="${openUrl || url}" target="_blank" class="block">
-              <img src="${url}" alt="img" class="h-12 w-12 rounded object-cover border" />
-            </a>
-            <a href="${openUrl || url}" target="_blank" class="text-sky-700 hover:underline truncate max-w-[220px]">${safeName}</a>
-          </div>`;
-      }
-
-      if (openUrl || url) {
-        return `<a href="${openUrl || url}" target="_blank" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-700">📎 <span class="truncate max-w-[240px]">${safeName}</span></a>`;
-      }
-      if (fileName) {
-        return `<span class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-600">📎 <span class="truncate max-w-[240px]">${safeName}</span></span>`;
-      }
-      return '<span class="text-slate-400">—</span>';
-    }
-
     function escapeHTML(s){
-      return String(s ?? "").replace(/[&<>\"']/g, c => ({
+      return String(s ?? "").replace(/[&<>"']/g, c => ({
         "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
       }[c]));
-    }
-
-    function formatTimeVN(iso){
-      if (!iso) return '<span class="text-slate-400">—</span>';
-      const d = new Date(iso);
-      if (isNaN(d.getTime())) return escapeHTML(String(iso));
-      try {
-        return new Intl.DateTimeFormat('vi-VN', {
-          timeZone: 'Asia/Phnom_Penh',
-          day: '2-digit', month: '2-digit', year: 'numeric',
-          hour: '2-digit', minute: '2-digit', hour12: false
-        }).format(d);
-      } catch {
-        return d.toLocaleString('vi-VN');
-      }
-    }
-
-    function formatFileSize(bytes){
-      if (!bytes && bytes !== 0) return '';
-      const thresh = 1024;
-      if (Math.abs(bytes) < thresh) return bytes + ' B';
-      const units = ['KB','MB','GB','TB'];
-      let u = -1; let b = bytes;
-      do { b /= thresh; ++u; } while (Math.abs(b) >= thresh && u < units.length - 1);
-      return b.toFixed(1) + ' ' + units[u];
     }
   </script>
 </body>
