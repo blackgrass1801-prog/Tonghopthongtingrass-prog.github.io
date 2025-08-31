@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>📝 Bài thi trắc nghiệm</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}
+    .soft-shadow{box-shadow:0 10px 25px rgba(0,0,0,.08)}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50">
+  <main class="max-w-3xl mx-auto px-4 py-10 space-y-8">
+
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-3xl font-extrabold tracking-wide" style="color:#00A3C6">📝 Bài thi trắc nghiệm</h1>
+      <p class="text-slate-600 mt-2">
+        Nhập tên của bạn, bấm <b>Bắt đầu</b> để làm bài. Hoàn thành bấm <b>Nộp bài</b>.
+      </p>
+    </header>
+
+    <!-- Screen 1: nhập tên -->
+    <section id="screenWelcome" class="glass soft-shadow rounded-2xl p-6">
+      <label class="block text-sm font-semibold mb-2">Tên nhân viên</label>
+      <input id="employeeName" class="w-full border rounded-lg p-3" placeholder="Nhập tên của bạn"/>
+      <button id="btnStart" class="mt-4 bg-sky-600 text-white font-semibold px-5 py-3 rounded-lg hover:bg-sky-700">
+        ▶️ Bắt đầu
+      </button>
+    </section>
+
+    <!-- Screen 2: làm bài -->
+    <section id="screenQuiz" class="hidden glass soft-shadow rounded-2xl p-6">
+      <h2 class="text-xl font-bold mb-4">Câu hỏi</h2>
+      <div id="quizBox" class="space-y-6"></div>
+
+      <button id="btnSubmit" class="mt-6 bg-emerald-600 text-white font-semibold px-5 py-3 rounded-lg hover:bg-emerald-700">
+        📤 Nộp bài
+      </button>
+    </section>
+
+    <!-- Screen 3: cảm ơn -->
+    <section id="screenThank" class="hidden glass soft-shadow rounded-2xl p-6 text-center">
+      <h2 class="text-xl font-bold mb-2">🎉 Cảm ơn bạn!</h2>
+      <p id="thankMsg" class="text-slate-700 leading-relaxed"></p>
+      <a href="index.html" class="inline-block mt-5 text-sky-600 hover:underline">⟵ Quay về trang chính</a>
+    </section>
+  </main>
+
+  <script>
+    // 👉 ĐỔI thành Web App URL của Apps Script của bạn
+    const WEB_APP_URL = "https://script.google.com/macros/s/REPLACE_ME/exec";
+
+    // ====== KHAI BÁO CÂU HỎI (bạn chỉnh ở đây) ======
+    // - text: nội dung câu hỏi
+    // - img: (tùy chọn) link ảnh minh họa
+    // - options: mảng các đáp án
+    // - correct: chỉ số đáp án đúng (0..n-1)
+    const QUESTIONS = [
+      {
+        text: "Trong Baccarat, khi nào được gọi là 'thắng tự nhiên'?",
+        img: "", // có thể để trống
+        options: [
+          "Khi tổng 2 lá đầu là 8 hoặc 9",
+          "Khi 3 lá có tổng 9",
+          "Khi tổng 2 lá đầu là 7",
+          "Khi đặt cược Banker"
+        ],
+        correct: 0
+      },
+      {
+        text: "Ảnh sau minh họa kết quả, người chơi thắng cửa nào?",
+        img: "https://images.unsplash.com/photo-1542228262-3d663b3063f0?q=80&w=1200&auto=format&fit=crop",
+        options: [
+          "Player",
+          "Banker",
+          "Hòa (Tie)",
+          "Không xác định"
+        ],
+        correct: 1
+      },
+      {
+        text: "Roulette có tổng cộng bao nhiêu số trên bàn kiểu châu Âu?",
+        img: "",
+        options: ["36", "37", "38", "39"],
+        correct: 1
+      }
+    ];
+    // ================================================
+
+    const $  = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+
+    const screenWelcome = $("#screenWelcome");
+    const screenQuiz    = $("#screenQuiz");
+    const screenThank   = $("#screenThank");
+    const btnStart      = $("#btnStart");
+    const btnSubmit     = $("#btnSubmit");
+    const employeeName  = $("#employeeName");
+    const quizBox       = $("#quizBox");
+    const thankMsg      = $("#thankMsg");
+
+    // Render câu hỏi
+    function renderQuiz() {
+      quizBox.innerHTML = QUESTIONS.map((q, qi) => {
+        const opts = q.options.map((op, oi) => `
+          <label class="flex items-start gap-3">
+            <input type="radio" name="q${qi}" value="${oi}" class="mt-1">
+            <span>${op}</span>
+          </label>
+        `).join("");
+
+        const img = q.img
+          ? `<img src="${q.img}" class="w-full rounded-lg soft-shadow my-3" alt="image for Q${qi+1}">`
+          : "";
+
+        return `
+          <div class="rounded-xl border p-4">
+            <p class="font-semibold mb-2">Câu ${qi+1}) ${q.text}</p>
+            ${img}
+            <div class="space-y-2">${opts}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Start
+    btnStart.addEventListener("click", () => {
+      const name = employeeName.value.trim();
+      if (!name) { alert("Vui lòng nhập tên!"); return; }
+      renderQuiz();
+      screenWelcome.classList.add("hidden");
+      screenQuiz.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // Submit
+    btnSubmit.addEventListener("click", async () => {
+      const name = employeeName.value.trim();
+
+      // Thu thập lựa chọn của từng câu
+      const picks = QUESTIONS.map((_, qi) => {
+        const checked = document.querySelector(`input[name="q${qi}"]:checked`);
+        return checked ? Number(checked.value) : -1; // -1: chưa chọn
+      });
+
+      // (Tuỳ chọn) ép buộc làm hết
+      if (picks.some(v => v === -1)) {
+        if (!confirm("Bạn còn câu chưa chọn. Vẫn nộp bài?")) return;
+      }
+
+      // Chấm điểm
+      const total = QUESTIONS.length;
+      const score = picks.reduce((s, pick, i) =>
+        s + (pick === QUESTIONS[i].correct ? 1 : 0), 0);
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Đang nộp...";
+
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          // Không set Content-Type để tránh preflight Apps Script
+          body: JSON.stringify({
+            type: "mcq",
+            name,
+            picks,              // mảng chỉ số lựa chọn
+            score, total        // điểm & tổng
+          })
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || "Submit failed");
+
+        screenQuiz.classList.add("hidden");
+        screenThank.classList.remove("hidden");
+        thankMsg.textContent =
+          `Cảm ơn bạn đã hoàn thành bài thi. Kết quả: ${score}/${total} (≈ ${Math.round(score*100/total)}%). ` +
+          `Vui lòng đợi công bố từ bộ phận liên quan.`;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (e) {
+        console.error(e);
+        alert("❌ Lỗi nộp bài, vui lòng thử lại!");
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "📤 Nộp bài";
+      }
+    });
+  </script>
+</body>
+</html>
