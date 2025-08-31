@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nhập dữ liệu Đại lý</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center">
+  <div class="glass soft-shadow rounded-2xl p-6 w-full max-w-lg">
+    <h2 class="text-xl font-bold mb-4">📌 Nhập dữ liệu Đại lý</h2>
+
+    <label>Đại lý</label>
+    <input id="daily" class="w-full border p-2 rounded mb-3" placeholder="Nhập tên đại lý">
+
+    <label>Nội dung</label>
+    <textarea id="noiDung" class="w-full border p-2 rounded mb-3" placeholder="Nhập nội dung"></textarea>
+
+    <label>Nhân viên</label>
+    <input id="employee" class="w-full border p-2 rounded mb-3" placeholder="Nhập tên nhân viên">
+
+    <label>Xử lý</label>
+    <input id="xuLy" class="w-full border p-2 rounded mb-3" placeholder="Trạng thái xử lý">
+
+    <label>Chọn file (Ảnh/Excel)</label>
+    <input type="file" id="file" class="mb-3">
+
+    <button onclick="submitData()" class="bg-green-600 text-white px-4 py-2 rounded">📤 Upload</button>
+  </div>
+
+  <script>
+    async function submitData() {
+      const daily = document.getElementById("daily").value;
+      const noiDung = document.getElementById("noiDung").value;
+      const employee = document.getElementById("employee").value;
+      const xuLy = document.getElementById("xuLy").value;
+      const fileInput = document.getElementById("file").files[0];
+
+      let fileData = "", fileName = "", mimeType = "";
+      if (fileInput) {
+        fileName = fileInput.name;
+        mimeType = fileInput.type;
+        const reader = new FileReader();
+        fileData = await new Promise((resolve) => {
+          reader.onload = e => resolve(e.target.result.split(",")[1]);
+          reader.readAsDataURL(fileInput);
+        });
+      }
+
+      fetch("https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec", {
+        method: "POST",
+        body: JSON.stringify({ daily, noiDung, employee, xuLy, fileName, mimeType, base64: fileData }),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(res => res.json())
+      .then(() => alert("✅ Đã lưu thành công!"))
+      .catch(() => alert("❌ Lỗi khi lưu dữ liệu!"));
+    }
+  </script>
+</body>
+</html>
