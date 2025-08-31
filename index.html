@@ -18,27 +18,27 @@
     .glass{background:rgba(255,255,255,.86);backdrop-filter:blur(8px);}
     .soft-shadow{box-shadow:0 10px 25px rgba(0,0,0,.08);}
     .pill{border-radius:9999px}
-    .gradient-btn{background-image:linear-gradient(135deg,#1e3a8a,#2563eb);} /* indigo-900 -> blue-600 */
-    .rank-chip{display:flex;align-items:center;gap:.6rem;padding:.75rem 1.25rem;border-radius:12px;color:#1f2937;font-weight:700;font-size:1rem}
+    .gradient-btn{background-image:linear-gradient(135deg,#1e3a8a,#2563eb);} 
+    .rank-chip{display:flex;align-items:center;gap:.6rem;padding:.55rem 1rem;border-radius:12px;color:#1f2937;font-weight:700}
   </style>
 </head>
 <body class="min-h-screen bg-[url('https://images.unsplash.com/photo-1519060825752-c4832f2d400a?q=80&w=2400&auto=format&fit=crop')] bg-cover bg-center relative">
 
-  <!-- mờ nền để dễ đọc -->
+  <!-- mờ nền -->
   <div class="absolute inset-0 bg-white/70"></div>
 
-  <header class="relative z-10 text-center pt-10 pb-4">
-    <h1 style="color:#00A3C6;" class="text-4xl md:text-5xl font-extrabold tracking-wide drop-shadow-sm">
+  <header class="relative z-10 text-center pt-6">
+    <h1 style="color:#00A3C6;" class="text-3xl md:text-4xl font-extrabold tracking-wide drop-shadow-sm">
       BỘ PHẬN RỦI RO SHBET
     </h1>
   </header>
 
-  <!-- Căn giữa toàn màn hình -->
-  <main class="relative z-10 min-h-screen flex items-center justify-center px-4 md:px-8">
-    <div class="grid md:grid-cols-2 gap-10 lg:gap-16">
+  <!-- căn giữa cả dọc và ngang -->
+  <main class="relative z-10 flex items-center justify-center min-h-[80vh]">
+    <div class="grid md:grid-cols-2 gap-10 w-full max-w-6xl">
 
-      <!-- Cột trái: BXH KPI -->
-      <section class="glass soft-shadow rounded-3xl p-8 md:p-10 w-[600px]">
+      <!-- Cột trái -->
+      <section class="glass soft-shadow rounded-2xl p-8">
         <h2 class="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
           🏆 BXH TOP KPI THÁNG 08
         </h2>
@@ -51,22 +51,22 @@
         <p class="text-slate-500 mt-3">Đang cập nhật…</p>
       </section>
 
-      <!-- Cột phải: Kiểm tra thông tin -->
-      <section class="glass soft-shadow rounded-3xl p-8 md:p-10 w-[600px]">
+      <!-- Cột phải -->
+      <section class="glass soft-shadow rounded-2xl p-8">
         <h2 class="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
           ⭐ KIỂM TRA THÔNG TIN
         </h2>
         <div class="mt-6 space-y-4">
-          <a href="#" class="block pill gradient-btn text-white text-lg px-6 py-4 soft-shadow hover:brightness-110 transition">
+          <a href="#" class="block pill gradient-btn text-white px-6 py-4 text-lg text-center soft-shadow hover:brightness-110 transition">
             🎁 Nhập khuyến mãi
           </a>
-          <a href="daily.html" class="block pill bg-sky-700 text-white text-lg px-6 py-4 soft-shadow hover:brightness-110 transition">
+          <a href="daily.html" class="block pill bg-sky-700 text-white px-6 py-4 text-lg text-center soft-shadow hover:brightness-110 transition">
             📘 Nhập thông tin đại lý
           </a>
-          <a href="#" class="block pill bg-sky-700 text-white text-lg px-6 py-4 soft-shadow hover:brightness-110 transition">
+          <a href="#" class="block pill bg-sky-700 text-white px-6 py-4 text-lg text-center soft-shadow hover:brightness-110 transition">
             🧪 Test định kỳ tự luận
           </a>
-          <a href="#" class="block pill bg-sky-700 text-white text-lg px-6 py-4 soft-shadow hover:brightness-110 transition">
+          <a href="#" class="block pill bg-sky-700 text-white px-6 py-4 text-lg text-center soft-shadow hover:brightness-110 transition">
             📝 Test định kỳ trắc nghiệm
           </a>
         </div>
@@ -75,7 +75,7 @@
     </div>
   </main>
 
-  <!-- Nút mini game nổi góc phải -->
+  <!-- Nút mini game -->
   <a href="#" class="fixed bottom-6 right-6 z-10 pill bg-pink-600 text-white font-extrabold px-6 py-4 soft-shadow hover:scale-105 transition">
     🎮 MINI GAME
   </a>
