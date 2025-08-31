@@ -43,9 +43,13 @@
             <option>Hủy hợp tác</option>
           </select>
 
-          <label class="text-sm font-semibold mt-3" for="file">Chọn file (Ảnh/Excel)</label>
+          <!-- File -->
+          <label class="text-sm font-semibold mt-3" for="file">Chọn file (Ảnh/PDF/Excel)</label>
           <input id="file" type="file" class="w-full border rounded-lg p-3"
-                 accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv" />
+                 accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.xlsx,.xls,.csv" />
+
+          <!-- Preview tệp đã chọn -->
+          <div id="filePreview" class="mt-2"></div>
         </div>
 
         <button id="btnUpload" onclick="submitData()" class="mt-6 inline-flex items-center gap-2 bg-emerald-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-emerald-700">
@@ -88,10 +92,103 @@
   </main>
 
   <script>
-    // THAY bằng URL Web App (đã Deploy, Who has access = Anyone)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFpe9b_-4hSCs8V7vLE6GQWx5BcnUuN7YRHBRPzX1XSMG1yQ7OoOkO6bXVkZ0Dmvpx/exec";
+    /* ============ THAY URL NÀY BẰNG WEB APP URL CỦA BẠN ============ */
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxQgWRKKYBWWa3dHGZGlWUJcJINEdlwwEgODY5fYmGJyJU9QV8VtRdg0GFKn1_drXMr/exec";
 
-    // ===== UPLOAD =====
+    /* ===== Helpers: Drive link -> viewable image & formatting ===== */
+    function parseDriveId(url){
+      const m = String(url||'').match(/\/file\/d\/([^/]+)\//);
+      if (m && m[1]) return m[1];
+      const m2 = String(url||'').match(/[?&]id=([^&]+)/);
+      return m2 ? m2[1] : '';
+    }
+    function toDriveViewUrl(url){
+      const id = parseDriveId(url);
+      return id ? `https://drive.google.com/uc?export=view&id=${id}` : url;
+    }
+    function isImageByExt(name=''){ return /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(name); }
+    function escapeHTML(s){
+      return String(s ?? "").replace(/[&<>\"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+      }[c]));
+    }
+    function formatTimeVN(iso){
+      if (!iso) return '<span class="text-slate-400">—</span>';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return escapeHTML(String(iso));
+      try {
+        return new Intl.DateTimeFormat('vi-VN', {
+          timeZone: 'Asia/Phnom_Penh',
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', hour12: false
+        }).format(d);
+      } catch {
+        return d.toLocaleString('vi-VN');
+      }
+    }
+
+    function renderAttachment({fileUrl, fileName, mimeType, base64}){
+      let url = '', openUrl = '';
+      if (fileUrl) {
+        url = toDriveViewUrl(fileUrl); // ảnh xem được
+        openUrl = fileUrl;             // mở tab gốc
+      } else if (base64 && (mimeType||'').startsWith('image/')) {
+        url = `data:${mimeType};base64,${base64}`;
+        openUrl = url;
+      }
+
+      const safeName = escapeHTML(fileName || (mimeType ? `Tệp (${mimeType})` : 'Tệp đính kèm'));
+      const looksImg = (mimeType||'').startsWith('image/') || isImageByExt(fileName) || (url && url.startsWith('data:image'));
+
+      if (url && looksImg) {
+        return `
+          <div class="flex items-center gap-3">
+            <a href="${openUrl || url}" target="_blank" class="block">
+              <img src="${url}" alt="img" class="h-12 w-12 rounded object-cover border" />
+            </a>
+            <a href="${openUrl || url}" target="_blank" class="text-sky-700 hover:underline truncate max-w-[220px]">${safeName}</a>
+          </div>`;
+      }
+      if (openUrl || url) {
+        return `<a href="${openUrl || url}" target="_blank" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-700">📎 <span class="truncate max-w-[240px]">${safeName}</span></a>`;
+      }
+      if (fileName) {
+        return `<span class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-600">📎 <span class="truncate max-w-[240px]">${safeName}</span></span>`;
+      }
+      return '<span class="text-slate-400">—</span>';
+    }
+
+    /* ====== Preview file khi người dùng chọn ====== */
+    document.getElementById('file').addEventListener('change', (e) => {
+      const f = e.target.files?.[0];
+      const box = document.getElementById('filePreview');
+      if (!f) { box.innerHTML = ''; return; }
+
+      const isImg = f.type.startsWith('image/') || isImageByExt(f.name);
+      const size = (f.size/1024).toFixed(1) + ' KB';
+      if (isImg) {
+        const url = URL.createObjectURL(f);
+        box.innerHTML = `
+          <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border">
+            <img src="${url}" alt="preview" class="h-16 w-16 object-cover rounded" />
+            <div class="min-w-0">
+              <div class="font-medium truncate">${escapeHTML(f.name)}</div>
+              <div class="text-xs text-slate-500">${escapeHTML(f.type || 'image')}, ${size}</div>
+            </div>
+          </div>`;
+      } else {
+        box.innerHTML = `
+          <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border">
+            <div class="h-10 w-10 rounded bg-slate-200 flex items-center justify-center text-slate-700">📎</div>
+            <div class="min-w-0">
+              <div class="font-medium truncate">${escapeHTML(f.name)}</div>
+              <div class="text-xs text-slate-500">${escapeHTML(f.type || 'file')}, ${size}</div>
+            </div>
+          </div>`;
+      }
+    });
+
+    /* ===== UPLOAD ===== */
     async function submitData() {
       const daiLy    = document.getElementById("daiLy").value.trim();
       const noiDung  = document.getElementById("noiDung").value.trim();
@@ -107,10 +204,11 @@
       const btn = document.getElementById("btnUpload");
       btn.disabled = true; btn.textContent = "Đang gửi...";
 
-      let fileData = "", fileName = "", mimeType = "";
+      let fileData = "", fileName = "", mimeType = "", fileSize = 0;
       if (fileInput) {
         fileName = fileInput.name;
         mimeType = fileInput.type || "";
+        fileSize = fileInput.size || 0;
         const reader = new FileReader();
         fileData = await new Promise((resolve) => {
           reader.onload = (e) => resolve(String(e.target.result).split(",")[1]);
@@ -118,11 +216,17 @@
         });
       }
 
+      const timeSent = new Date().toISOString();
+
       try {
         const res = await fetch(WEB_APP_URL, {
           method: "POST",
-          // KHÔNG set 'Content-Type' để tránh CORS preflight của Apps Script
-          body: JSON.stringify({ daiLy, noiDung, nhanVien, xuLy, fileName, mimeType, base64: fileData })
+          // KHÔNG set 'Content-Type' để tránh preflight của Apps Script
+          body: JSON.stringify({
+            daiLy, noiDung, nhanVien, xuLy,
+            fileName: fileName, mimeType, base64: fileData, fileSize,
+            timeSent
+          })
         });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const json = await res.json().catch(() => ({}));
@@ -134,15 +238,16 @@
         document.getElementById("nhanVien").value = "";
         document.getElementById("xuLy").value = "";
         document.getElementById("file").value = "";
+        document.getElementById("filePreview").innerHTML = "";
       } catch (e) {
         console.error(e);
-        alert("❌ Lỗi khi lưu dữ liệu!");
+        alert("❌ Lỗi khi lưu dữ liệu: " + e.message);
       } finally {
         btn.disabled = false; btn.textContent = "📤 Upload";
       }
     }
 
-    // ===== TÌM KIẾM =====
+    /* ===== TÌM KIẾM ===== */
     async function searchData() {
       const kwDaily   = document.getElementById("searchdaiLy").value.trim().toLowerCase();
       const kwNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
@@ -152,7 +257,6 @@
       box.innerHTML = "<p class='text-slate-500'>Đang tải dữ liệu...</p>";
 
       try {
-        // QUAN TRỌNG: dùng ?action=list để server trả rows
         const res = await fetch(WEB_APP_URL + "?action=list", { method: "GET", cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const json = await res.json();
@@ -161,14 +265,12 @@
         const rows = Array.isArray(json.rows) ? json.rows : [];
 
         const filtered = rows.filter(r => {
-          const daily   = String(r.daily   || r.daiLy   || "").toLowerCase(); // dự phòng tên cột
+          const daily   = String(r.daily   || r.daiLy   || "").toLowerCase();
           const content = String(r.noiDung || "").toLowerCase();
           const xl      = String(r.xuLy    || "");
-
           const passDaily   = !kwDaily   || daily.includes(kwDaily);
           const passNoiDung = !kwNoiDung || content.includes(kwNoiDung);
           const passXuLy    = (pickXuLy === "--all--" || pickXuLy === "" || xl === pickXuLy);
-
           return passDaily && passNoiDung && passXuLy;
         });
 
@@ -177,14 +279,7 @@
           return;
         }
 
-        const htmlRows = filtered.map(r => `
-          <tr class="border-b">
-            <td class="px-3 py-2">${escapeHTML(r.daily ?? r.daiLy ?? '')}</td>
-            <td class="px-3 py-2">${escapeHTML(r.noiDung ?? '')}</td>
-            <td class="px-3 py-2">${escapeHTML(r.nhanVien ?? r.employee ?? '')}</td>
-            <td class="px-3 py-2">${escapeHTML(r.xuLy ?? '')}</td>
-          </tr>
-        `).join("");
+        const htmlRows = filtered.map(r => renderRow(r)).join("");
 
         box.innerHTML = `
           <div class="overflow-auto rounded-lg border">
@@ -195,6 +290,8 @@
                   <th class="px-3 py-2">Nội dung</th>
                   <th class="px-3 py-2">Nhân viên</th>
                   <th class="px-3 py-2">Trạng thái xử lý</th>
+                  <th class="px-3 py-2">Tệp đính kèm</th>
+                  <th class="px-3 py-2">Thời gian</th>
                 </tr>
               </thead>
               <tbody>${htmlRows}</tbody>
@@ -207,10 +304,33 @@
       }
     }
 
-    function escapeHTML(s){
-      return String(s ?? "").replace(/[&<>"']/g, c => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
-      }[c]));
+    function renderRow(r){
+      const daily    = escapeHTML(r.daily ?? r.daiLy ?? '');
+      const noiDung  = escapeHTML(r.noiDung ?? '');
+      const nhanVien = escapeHTML(r.nhanVien ?? r.employee ?? '');
+      const xuLy     = escapeHTML(r.xuLy ?? '');
+
+      // Ưu tiên link xem ảnh (thumbUrl/ViewURL), sau đó link file
+      const fileUrl  = r.thumbUrl || r.viewURL || r.ViewURL || r.fileUrl || r.fileURL || r.FileURL || '';
+      const fileName = r.fileName || r.FileName || '';
+      const mimeType = r.mimeType || r.mimetype || '';
+      const base64   = r.base64   || '';
+
+      // Thời gian từ server
+      const timeIso  = r.timeSent || r.timestamp || r.Timestamp || '';
+
+      const attachCell = renderAttachment({ fileUrl, fileName, mimeType, base64 });
+      const timeCell   = formatTimeVN(timeIso);
+
+      return `
+        <tr class="border-b align-top">
+          <td class="px-3 py-2">${daily}</td>
+          <td class="px-3 py-2">${noiDung}</td>
+          <td class="px-3 py-2">${nhanVien}</td>
+          <td class="px-3 py-2">${xuLy}</td>
+          <td class="px-3 py-2">${attachCell}</td>
+          <td class="px-3 py-2 whitespace-nowrap">${timeCell}</td>
+        </tr>`;
     }
   </script>
 </body>
