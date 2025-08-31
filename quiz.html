@@ -169,28 +169,21 @@ quyết.?</p>
     });
 
     btnSubmit.addEventListener("click", async () => {
-      const name = employeeName.value.trim();
-      const answers = [...document.querySelectorAll(".quiz-answer")].map((el, idx) => ({
-        q: idx + 1, a: el.value.trim()
-      }));
+      const answers = [...document.querySelectorAll(".quiz-answer")]
+                 .map(el => el.value.trim());
 
-      // Kiểm tra ít nhất có trả lời
-      if (answers.every(x => !x.a)) {
-        alert("Bạn chưa nhập câu trả lời nào.");
-        return;
-      }
+// Kiểm tra ít nhất có trả lời
+if (answers.every(a => !a)) {
+  alert("Bạn chưa nhập câu trả lời nào.");
+  return;
+}
 
-      btnSubmit.disabled = true; btnSubmit.textContent = "Đang nộp...";
+...
 
-      try {
-        const res = await fetch(WEB_APP_URL, {
-          method: "POST",
-          // Không set Content-Type để tránh CORS preflight với Apps Script
-          body: JSON.stringify({
-            action: "submit-quiz",
-            employee: name,
-            answers
-          })
+body: JSON.stringify({
+  name: name,      // sửa "employee" -> "name"
+  answers: answers // mảng string
+})
         });
         const json = await res.json();
         if (!json.ok) throw new Error(json.error || "Submit failed");
