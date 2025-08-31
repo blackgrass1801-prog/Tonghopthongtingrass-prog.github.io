@@ -76,7 +76,53 @@
   <a href="#" class="fixed bottom-6 right-6 z-10 pill bg-pink-600 text-white font-extrabold px-5 py-3 soft-shadow hover:scale-105 transition">
     🎮 MINI GAME
   </a>
+function submitData() {
+  const daily = document.getElementById("daily").value;
+  const noiDung = document.getElementById("noidung").value;
+  const employee = document.getElementById("nhanvien").value;
+  const xuly = document.getElementById("xuly").value;
+  const fileInput = document.getElementById("file").files[0];
 
+  if (!daily || !noiDung || !employee || !xuly) {
+    alert("⚠️ Vui lòng điền đầy đủ thông tin!");
+    return;
+  }
+
+  // xử lý file upload -> gửi đến Google Apps Script
+  const reader = new FileReader();
+  reader.onload = function () {
+    const base64 = reader.result.split(",")[1];
+
+    fetch("PASTE_YOUR_WEB_APP_URL", {
+      method: "POST",
+      body: JSON.stringify({
+        daily,
+        noiDung,
+        employee,
+        xuly,
+        fileName: fileInput ? fileInput.name : "",
+        mimeType: fileInput ? fileInput.type : "",
+        base64: base64 || ""
+      }),
+      headers: { "Content-Type": "application/json" }
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        alert("✅ Đã lưu thành công!");
+        console.log(response);
+      })
+      .catch((err) => {
+        alert("❌ Lỗi khi lưu dữ liệu!");
+        console.error(err);
+      });
+  };
+
+  if (fileInput) {
+    reader.readAsDataURL(fileInput);
+  } else {
+    reader.onload(); // nếu không có file thì vẫn gửi
+  }
+}
   <footer class="relative z-10 text-center mt-10 pb-10 text-slate-500">
     <small>© 2025 NEW88 · Trang nội bộ mẫu</small>
   </footer>
