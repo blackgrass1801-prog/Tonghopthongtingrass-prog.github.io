@@ -4,18 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BỘ PHẬN RỦI RO SHBET</title>
-  <!-- Tailwind CSS CDN (dễ dùng, không cần build) -->
+
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
+    html{scroll-behavior:smooth}
     :root{--card:bg:255,255,255;}
-    body{font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;}
-    .glass{background: rgba(255,255,255,.86); backdrop-filter: blur(8px);} 
-    .soft-shadow{box-shadow: 0 10px 25px rgba(0,0,0,.08);} 
-    .pill{border-radius: 9999px}
-    .gradient-btn{background-image: linear-gradient(135deg,#1e3a8a,#2563eb);} /* indigo-900 -> blue-600 */
+    body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .glass{background:rgba(255,255,255,.86);backdrop-filter:blur(8px);}
+    .soft-shadow{box-shadow:0 10px 25px rgba(0,0,0,.08);}
+    .pill{border-radius:9999px}
+    .gradient-btn{background-image:linear-gradient(135deg,#1e3a8a,#2563eb);} /* indigo-900 -> blue-600 */
     .rank-chip{display:flex;align-items:center;gap:.6rem;padding:.55rem 1rem;border-radius:12px;color:#1f2937;font-weight:700}
   </style>
 </head>
@@ -57,7 +60,8 @@
           <a href="#" class="block pill gradient-btn text-white px-4 py-3 soft-shadow hover:brightness-110 transition">
             🎁 Nhập khuyến mãi
           </a>
-          <a href="#" class="block pill bg-sky-700 text-white px-4 py-3 soft-shadow hover:brightness-110 transition">
+          <!-- Đổi href thành #form-daily để cuộn xuống form -->
+          <a href="#form-daily" class="block pill bg-sky-700 text-white px-4 py-3 soft-shadow hover:brightness-110 transition">
             📘 Nhập thông tin đại lý
           </a>
           <a href="#" class="block pill bg-sky-700 text-white px-4 py-3 soft-shadow hover:brightness-110 transition">
@@ -70,138 +74,73 @@
       </section>
 
     </div>
+
+    <!-- FORM NHẬP DỮ LIỆU ĐẠI LÝ -->
+    <section id="form-daily" class="max-w-2xl mx-auto glass soft-shadow rounded-2xl p-6 my-10">
+      <h2 class="text-xl font-bold mb-4">📌 Nhập dữ liệu Đại lý</h2>
+
+      <label class="block mb-1">Đại lý</label>
+      <input id="daily" type="text" class="w-full border p-2 rounded mb-3" placeholder="Nhập tên đại lý">
+
+      <label class="block mb-1">Nội dung</label>
+      <textarea id="noiDung" class="w-full border p-2 rounded mb-3" placeholder="Nhập nội dung"></textarea>
+
+      <label class="block mb-1">Nhân viên</label>
+      <input id="employee" type="text" class="w-full border p-2 rounded mb-3" placeholder="Nhập tên nhân viên">
+
+      <label class="block mb-1">Xử lý</label>
+      <input id="xuLy" type="text" class="w-full border p-2 rounded mb-4" placeholder="Trạng thái xử lý">
+
+      <label class="block mb-1">Chọn file (Ảnh/Excel)</label>
+      <input id="file" type="file" class="w-full border p-2 rounded mb-4">
+
+      <button onclick="submitData()" class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">
+        🚀 Upload
+      </button>
+    </section>
   </main>
 
   <!-- Nút mini game nổi góc phải  -->
   <a href="#" class="fixed bottom-6 right-6 z-10 pill bg-pink-600 text-white font-extrabold px-5 py-3 soft-shadow hover:scale-105 transition">
     🎮 MINI GAME
   </a>
-function submitData() {
-  const daily = document.getElementById("daily").value;
-  const noiDung = document.getElementById("noidung").value;
-  const employee = document.getElementById("nhanvien").value;
-  const xuly = document.getElementById("xuly").value;
-  const fileInput = document.getElementById("file").files[0];
 
-  if (!daily || !noiDung || !employee || !xuly) {
-    alert("⚠️ Vui lòng điền đầy đủ thông tin!");
-    return;
-  }
-
-  // xử lý file upload -> gửi đến Google Apps Script
-  const reader = new FileReader();
-  reader.onload = function () {
-    const base64 = reader.result.split(",")[1];
-
-    fetch("PASTE_YOUR_WEB_APP_URL", {
-      method: "POST",
-      body: JSON.stringify({
-        daily,
-        noiDung,
-        employee,
-        xuly,
-        fileName: fileInput ? fileInput.name : "",
-        mimeType: fileInput ? fileInput.type : "",
-        base64: base64 || ""
-      }),
-      headers: { "Content-Type": "application/json" }
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        alert("✅ Đã lưu thành công!");
-        console.log(response);
-      })
-      .catch((err) => {
-        alert("❌ Lỗi khi lưu dữ liệu!");
-        console.error(err);
-      });
-  };
-
-  if (fileInput) {
-    reader.readAsDataURL(fileInput);
-  } else {
-    reader.onload(); // nếu không có file thì vẫn gửi
-  }
-}
-<script>
-  async function submitData() {
-    const daily     = document.getElementById("daily").value;
-    const noiDung   = document.getElementById("noiDung").value;
-    const employee  = document.getElementById("employee").value;
-    const xuLy      = document.getElementById("xuLy").value;
-    const fileInput = document.getElementById("file").files[0];
-
-    let fileData = "", fileName = "", mimeType = "";
-    if (fileInput) {
-      fileName = fileInput.name;
-      mimeType = fileInput.type;
-      const reader = new FileReader();
-      fileData = await new Promise((resolve) => {
-        reader.onload = (e) => resolve(e.target.result.split(",")[1]);
-        reader.readAsDataURL(fileInput);
-      });
-    }
-
-    fetch("DÁN_WEB_APP_URL_CỦA_BẠN_VÀO_ĐÂY", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ daily, noiDung, employee, xuLy, fileName, mimeType, base64: fileData })
-    })
-    .then(r => r.json())
-    .then(res => { alert("✅ Đã lưu thành công!"); console.log(res); })
-    .catch(err => { alert("❌ Lỗi khi lưu dữ liệu!"); console.error(err); });
-  }
-</script>
   <footer class="relative z-10 text-center mt-10 pb-10 text-slate-500">
     <small>© 2025 NEW88 · Trang nội bộ mẫu</small>
   </footer>
-  </footer>
 
-  <!-- Script gửi dữ liệu về Google Sheets -->
+  <!-- Script gửi dữ liệu về Google Sheets (CHỈ 1 HÀM) -->
   <script>
     async function submitData() {
-      const daily = document.getElementById("daily").value;
-      const noiDung = document.getElementById("noiDung").value;
-      const employee = document.getElementById("employee").value;
-      const xuLy = document.getElementById("xuLy").value;
+      const daily     = document.getElementById("daily").value;
+      const noiDung   = document.getElementById("noiDung").value;
+      const employee  = document.getElementById("employee").value;
+      const xuLy      = document.getElementById("xuLy").value;
       const fileInput = document.getElementById("file").files[0];
 
-      let fileData = "";
-      let fileName = "";
-      let mimeType = "";
-
+      let fileData = "", fileName = "", mimeType = "";
       if (fileInput) {
         fileName = fileInput.name;
         mimeType = fileInput.type;
         const reader = new FileReader();
         fileData = await new Promise((resolve) => {
-          reader.onload = e => resolve(e.target.result.split(",")[1]);
+          reader.onload = (e) => resolve(e.target.result.split(",")[1]);
           reader.readAsDataURL(fileInput);
         });
       }
 
-      fetch("https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec", {  // ⚠️ Dán URL bạn copy từ Apps Script
+      // ⚠️ THAY bằng URL Web App của bạn
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec";
+
+      fetch(WEB_APP_URL, {
         method: "POST",
-        body: JSON.stringify({
-          daily,
-          noiDung,
-          employee,
-          xuLy,
-          fileName,
-          mimeType,
-          base64: fileData
-        }),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ daily, noiDung, employee, xuLy, fileName, mimeType, base64: fileData })
       })
-      .then(res => res.json())
-      .then(response => {
-        alert("✅ Đã lưu thành công!");
-        console.log(response);
-      })
-      .catch(err => {
-        alert("❌ Lỗi khi lưu dữ liệu!");
-        console.error(err);
-      });
+      .then(r => r.json())
+      .then(res => { alert("✅ Đã lưu thành công!"); console.log(res); })
+      .catch(err => { alert("❌ Lỗi khi lưu dữ liệu!"); console.error(err); });
     }
   </script>
 </body>
+</html>
