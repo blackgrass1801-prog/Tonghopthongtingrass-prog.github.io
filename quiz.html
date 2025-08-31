@@ -149,55 +149,73 @@ quyết.?</p>
   </main>
 
   <script>
-    // 👉 THAY bằng Web App URL của Apps Script của bạn
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwTJLgtpiIv4PYF8ZVNom3Zpapl9Ak2ZsJo8O41iKc8UN-uwSiax2wt4_6uVNxEvYNU/exec";
+  // 👉 ĐỔI thành Web App URL của Apps Script
+  const WEB_APP_URL = "https://script.google.com/macros/s/REPLACE_ME/exec";
 
-    const $ = s => document.querySelector(s);
-    const screenWelcome = $("#screenWelcome");
-    const screenQuiz    = $("#screenQuiz");
-    const screenThank   = $("#screenThank");
-    const btnStart      = $("#btnStart");
-    const btnSubmit     = $("#btnSubmit");
-    const employeeName  = $("#employeeName");
+  // Helpers
+  const $  = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
 
-    btnStart.addEventListener("click", () => {
-      const name = employeeName.value.trim();
-      if (!name) { alert("Vui lòng nhập tên!"); return; }
-      screenWelcome.classList.add("hidden");
-      screenQuiz.classList.remove("hidden");
+  // Screens & controls
+  const screenWelcome = $("#screenWelcome");
+  const screenQuiz    = $("#screenQuiz");
+  const screenThank   = $("#screenThank");
+
+  const btnStart     = $("#btnStart");
+  const btnSubmit    = $("#btnSubmit");
+  const employeeName = $("#employeeName");
+
+  // Bắt đầu làm bài
+  btnStart.addEventListener("click", () => {
+    const name = employeeName.value.trim();
+    if (!name) {
+      alert("Vui lòng nhập tên!");
+      return;
+    }
+    screenWelcome.classList.add("hidden");
+    screenQuiz.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // Nộp bài
+  btnSubmit.addEventListener("click", async () => {
+    const name = employeeName.value.trim();
+
+    // Thu thập đáp án -> MẢNG CHUỖI (phù hợp Apps Script của bạn)
+    const answers = [...$$(".quiz-answer")].map(el => el.value.trim());
+
+    // Yêu cầu có ít nhất 1 câu trả lời
+    if (answers.every(a => !a)) {
+      alert("Bạn chưa nhập câu trả lời nào.");
+      return;
+    }
+
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Đang nộp...";
+
+    try {
+      const res = await fetch(WEB_APP_URL, {
+        method: "POST",
+        // KHÔNG set Content-Type để tránh preflight với Apps Script
+        body: JSON.stringify({ name, answers })
+      });
+
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "Nộp bài thất bại");
+
+      // Thành công → hiện màn hình cảm ơn
+      screenQuiz.classList.add("hidden");
+      screenThank.classList.remove("hidden");
       window.scrollTo({ top: 0, behavior: "smooth" });
-    });
+    } catch (err) {
+      console.error(err);
+      alert("❌ Lỗi nộp bài, vui lòng thử lại!");
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "📤 Nộp bài";
+    }
+  });
+</script>
 
-    btnSubmit.addEventListener("click", async () => {
-      const answers = [...document.querySelectorAll(".quiz-answer")]
-                 .map(el => el.value.trim());
-
-// Kiểm tra ít nhất có trả lời
-if (answers.every(a => !a)) {
-  alert("Bạn chưa nhập câu trả lời nào.");
-  return;
-}
-
-...
-
-body: JSON.stringify({
-  name: name,      // sửa "employee" -> "name"
-  answers: answers // mảng string
-})
-        });
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.error || "Submit failed");
-
-        screenQuiz.classList.add("hidden");
-        screenThank.classList.remove("hidden");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      } catch (e) {
-        console.error(e);
-        alert("❌ Lỗi nộp bài, vui lòng thử lại!");
-      } finally {
-        btnSubmit.disabled = false; btnSubmit.textContent = "📤 Nộp bài";
-      }
-    });
-  </script>
 </body>
 </html>
