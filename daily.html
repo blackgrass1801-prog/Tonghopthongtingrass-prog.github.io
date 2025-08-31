@@ -7,7 +7,6 @@
   <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Hai class nhỏ cho nền kính & đổ bóng */
     .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}
     .soft-shadow{box-shadow:0 10px 25px rgba(0,0,0,.08)}
   </style>
@@ -18,9 +17,8 @@
 
       <!-- 1) NHẬP DỮ LIỆU ĐẠI LÝ -->
       <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
-        <h1 class="text-4xl font-extrabold text-center mb-6" style="color:#00A3C6;">
-  SHBET
-</h1>
+        <h1 class="text-4xl font-extrabold text-center mb-6" style="color:#00A3C6;">SHBET</h1>
+
         <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
           📌 Nhập dữ liệu Đại lý
         </h2>
@@ -35,17 +33,22 @@
           <label class="text-sm font-semibold mt-3" for="employee">Nhân viên</label>
           <input id="employee" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên nhân viên" />
 
+          <!-- Select Xử lý -->
           <label class="text-sm font-semibold mt-3" for="xuLy">Xử lý</label>
-          <input id="xuLy" type="text" class="w-full border rounded-lg p-3" placeholder="Trạng thái xử lý" />
+          <select id="xuLy" class="w-full border rounded-lg p-3">
+            <option value="">-- Chọn trạng thái --</option>
+            <option>Đã xử lý</option>
+            <option>Chưa xử lý</option>
+            <option>Tổ trưởng chưa phản hồi</option>
+            <option>Hủy hợp tác</option>
+          </select>
 
           <label class="text-sm font-semibold mt-3" for="file">Chọn file (Ảnh/Excel)</label>
           <input id="file" type="file" class="w-full border rounded-lg p-3"
                  accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv" />
         </div>
 
-        <button
-          onclick="submitData()"
-          class="mt-6 inline-flex items-center gap-2 bg-emerald-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-emerald-700">
+        <button onclick="submitData()" class="mt-6 inline-flex items-center gap-2 bg-emerald-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-emerald-700">
           📤 Upload
         </button>
       </section>
@@ -62,11 +65,18 @@
 
           <label class="text-sm font-semibold" for="searchNoiDung">Tìm theo Nội dung</label>
           <input id="searchNoiDung" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập từ khóa nội dung" />
+
+          <label class="text-sm font-semibold" for="searchXuLy">Tìm theo Trạng thái xử lý</label>
+          <select id="searchXuLy" class="w-full border rounded-lg p-3">
+            <option value="">-- Tất cả --</option>
+            <option>Đã xử lý</option>
+            <option>Chưa xử lý</option>
+            <option>Tổ trưởng chưa phản hồi</option>
+            <option>Hủy hợp tác</option>
+          </select>
         </div>
 
-        <button id="btnSearch"
-          onclick="searchData()"
-          class="mt-6 inline-flex items-center gap-2 bg-sky-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-sky-700">
+        <button id="btnSearch" onclick="searchData()" class="mt-6 inline-flex items-center gap-2 bg-sky-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-sky-700">
           🔍 Tìm kiếm
         </button>
 
@@ -78,11 +88,9 @@
   </main>
 
   <script>
-    // ======= CẤU HÌNH CHUNG =======
-    const WEB_APP_URL =
-      "https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxhcotw2glL0CSKzm_AH51U1OUjP4v_a204djzCgCPpAdNa3VruXkMen-y9P2aL5aU/exec";
 
-    // ======= UPLOAD / LƯU DỮ LIỆU =======
+    // ===== UPLOAD =====
     async function submitData() {
       const daily     = document.getElementById("daily").value.trim();
       const noiDung   = document.getElementById("noiDung").value.trim();
@@ -112,46 +120,36 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ daily, noiDung, employee, xuLy, fileName, mimeType, base64: fileData })
         });
-        const json = await res.json().catch(() => ({}));
+        await res.json();
         alert("✅ Đã lưu thành công!");
-        console.log("Upload result:", json);
-
-        // Clear form:
-        document.getElementById("daily").value = "";
-        document.getElementById("noiDung").value = "";
-        document.getElementById("employee").value = "";
-        document.getElementById("xuLy").value = "";
-        document.getElementById("file").value = "";
       } catch (e) {
         console.error(e);
         alert("❌ Lỗi khi lưu dữ liệu!");
       }
     }
 
-    // ======= TÌM KIẾM DỮ LIỆU =======
+    // ===== TÌM KIẾM =====
     async function searchData() {
       const searchDaily   = document.getElementById("searchDaily").value.trim().toLowerCase();
       const searchNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
+      const searchXuLy    = document.getElementById("searchXuLy").value.trim().toLowerCase();
 
       try {
-        // Web App phải hỗ trợ trả JSON khi gọi GET
         const res = await fetch(WEB_APP_URL);
         const data = await res.json();
 
-        // Lọc kết quả
         const results = (Array.isArray(data) ? data : []).filter(row =>
           (!searchDaily   || String(row.daily   || "").toLowerCase().includes(searchDaily)) &&
-          (!searchNoiDung || String(row.noiDung || "").toLowerCase().includes(searchNoiDung))
+          (!searchNoiDung || String(row.noiDung || "").toLowerCase().includes(searchNoiDung)) &&
+          (!searchXuLy    || String(row.xuLy    || "").toLowerCase() === searchXuLy)
         );
 
-        // Hiển thị kết quả
         const box = document.getElementById("searchResults");
         if (!results.length) {
           box.innerHTML = "<p class='text-red-600'>❌ Không tìm thấy dữ liệu phù hợp</p>";
           return;
         }
 
-        // Dạng bảng cho dễ xem
         const rows = results.map(r => `
           <tr class="border-b">
             <td class="px-3 py-2">${escapeHTML(r.daily)}</td>
@@ -181,7 +179,6 @@
       }
     }
 
-    // Helper an toàn HTML
     function escapeHTML(s){
       return String(s ?? "").replace(/[&<>"']/g, c => ({
         "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
