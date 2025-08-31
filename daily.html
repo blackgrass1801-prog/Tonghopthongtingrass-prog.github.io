@@ -30,8 +30,8 @@
           <label class="text-sm font-semibold mt-3" for="noiDung">Nội dung</label>
           <textarea id="noiDung" rows="4" class="w-full border rounded-lg p-3" placeholder="Nhập nội dung"></textarea>
 
-          <label class="text-sm font-semibold mt-3" for="employee">Nhân viên</label>
-          <input id="employee" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên nhân viên" />
+          <label class="text-sm font-semibold mt-3" for="nhanVien">Nhân viên</label>
+          <input id="nhanVien" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên nhân viên" />
 
           <!-- Select Xử lý -->
           <label class="text-sm font-semibold mt-3" for="xuLy">Xử lý</label>
@@ -48,7 +48,7 @@
                  accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv" />
         </div>
 
-        <button onclick="submitData()" class="mt-6 inline-flex items-center gap-2 bg-emerald-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-emerald-700">
+        <button id="btnUpload" onclick="submitData()" class="mt-6 inline-flex items-center gap-2 bg-emerald-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-emerald-700">
           📤 Upload
         </button>
       </section>
@@ -68,11 +68,11 @@
 
           <label class="text-sm font-semibold" for="searchXuLy">Tìm theo Trạng thái xử lý</label>
           <select id="searchXuLy" class="w-full border rounded-lg p-3">
-            <option value="">-- Tất cả --</option>
-            <option>Đã xử lý</option>
-            <option>Chưa xử lý</option>
-            <option>Tổ trưởng chưa phản hồi</option>
-            <option>Hủy hợp tác</option>
+            <option value="--all--">-- Tất cả --</option>
+            <option value="Đã xử lý">Đã xử lý</option>
+            <option value="Chưa xử lý">Chưa xử lý</option>
+            <option value="Tổ trưởng chưa phản hồi">Tổ trưởng chưa phản hồi</option>
+            <option value="Hủy hợp tác">Hủy hợp tác</option>
           </select>
         </div>
 
@@ -88,20 +88,24 @@
   </main>
 
   <script>
+    // THAY bằng URL Web App (đã Deploy, Who has access = Anyone)
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzN1b5pjohNPPdrXERINzG3q0f_LaIgMRTFydGxtOz2byATX-DYUFOE33q6qfh7q5SI/exec";
 
     // ===== UPLOAD =====
     async function submitData() {
-      const daiLy     = document.getElementById("daiLy").value.trim();
-      const noiDung   = document.getElementById("noiDung").value.trim();
-      const employee  = document.getElementById("employee").value.trim();
-      const xuLy      = document.getElementById("xuLy").value.trim();
-      const fileInput = document.getElementById("file").files[0];
+      const daiLy    = document.getElementById("daiLy").value.trim();
+      const noiDung  = document.getElementById("noiDung").value.trim();
+      const nhanVien = document.getElementById("nhanVien").value.trim();
+      const xuLy     = document.getElementById("xuLy").value.trim();
+      const fileInput= document.getElementById("file").files[0];
 
-      if (!daiLy || !noiDung || !employee || !xuLy) {
+      if (!daiLy || !noiDung || !nhanVien || !xuLy) {
         alert("⚠️ Vui lòng nhập đầy đủ: Đại lý, Nội dung, Nhân viên, Xử lý.");
         return;
       }
+
+      const btn = document.getElementById("btnUpload");
+      btn.disabled = true; btn.textContent = "Đang gửi...";
 
       let fileData = "", fileName = "", mimeType = "";
       if (fileInput) {
@@ -117,45 +121,68 @@
       try {
         const res = await fetch(WEB_APP_URL, {
           method: "POST",
-          // headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ daiLy, noiDung, employee, xuLy, fileName, mimeType, base64: fileData })
+          // KHÔNG set 'Content-Type' để tránh CORS preflight của Apps Script
+          body: JSON.stringify({ daiLy, noiDung, nhanVien, xuLy, fileName, mimeType, base64: fileData })
         });
-        await res.json();
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json().catch(() => ({}));
+        if (!json.ok) throw new Error(json.error || "Upload thất bại");
         alert("✅ Đã lưu thành công!");
+        // clear
+        document.getElementById("daiLy").value = "";
+        document.getElementById("noiDung").value = "";
+        document.getElementById("nhanVien").value = "";
+        document.getElementById("xuLy").value = "";
+        document.getElementById("file").value = "";
       } catch (e) {
         console.error(e);
         alert("❌ Lỗi khi lưu dữ liệu!");
+      } finally {
+        btn.disabled = false; btn.textContent = "📤 Upload";
       }
     }
 
     // ===== TÌM KIẾM =====
     async function searchData() {
-      const searchdaiLy   = document.getElementById("searchdaiLy").value.trim().toLowerCase();
-      const searchNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
-      const searchXuLy    = document.getElementById("searchXuLy").value.trim().toLowerCase();
+      const kwDaily   = document.getElementById("searchdaiLy").value.trim().toLowerCase();
+      const kwNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
+      const pickXuLy  = document.getElementById("searchXuLy").value; // giữ nguyên chữ hoa/thường
+
+      const box = document.getElementById("searchResults");
+      box.innerHTML = "<p class='text-slate-500'>Đang tải dữ liệu...</p>";
 
       try {
-        const res = await fetch(WEB_APP_URL);
-        const data = await res.json();
+        // QUAN TRỌNG: dùng ?action=list để server trả rows
+        const res = await fetch(WEB_APP_URL + "?action=list", { method: "GET", cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || "Response not ok");
 
-        const results = (Array.isArray(data) ? data : []).filter(row =>
-          (!searchdaiLy   || String(row.daiLy   || "").toLowerCase().includes(searchdaiLy)) &&
-          (!searchNoiDung || String(row.noiDung || "").toLowerCase().includes(searchNoiDung)) &&
-          (!searchXuLy    || String(row.xuLy    || "").toLowerCase() === searchXuLy)
-        );
+        const rows = Array.isArray(json.rows) ? json.rows : [];
 
-        const box = document.getElementById("searchResults");
-        if (!results.length) {
+        const filtered = rows.filter(r => {
+          const daily   = String(r.daily   || r.daiLy   || "").toLowerCase(); // dự phòng tên cột
+          const content = String(r.noiDung || "").toLowerCase();
+          const xl      = String(r.xuLy    || "");
+
+          const passDaily   = !kwDaily   || daily.includes(kwDaily);
+          const passNoiDung = !kwNoiDung || content.includes(kwNoiDung);
+          const passXuLy    = (pickXuLy === "--all--" || pickXuLy === "" || xl === pickXuLy);
+
+          return passDaily && passNoiDung && passXuLy;
+        });
+
+        if (!filtered.length) {
           box.innerHTML = "<p class='text-red-600'>❌ Không tìm thấy dữ liệu phù hợp</p>";
           return;
         }
 
-        const rows = results.map(r => `
+        const htmlRows = filtered.map(r => `
           <tr class="border-b">
-            <td class="px-3 py-2">${escapeHTML(r.daiLy)}</td>
-            <td class="px-3 py-2">${escapeHTML(r.noiDung)}</td>
-            <td class="px-3 py-2">${escapeHTML(r.employee)}</td>
-            <td class="px-3 py-2">${escapeHTML(r.xuLy)}</td>
+            <td class="px-3 py-2">${escapeHTML(r.daily ?? r.daiLy ?? '')}</td>
+            <td class="px-3 py-2">${escapeHTML(r.noiDung ?? '')}</td>
+            <td class="px-3 py-2">${escapeHTML(r.nhanVien ?? r.employee ?? '')}</td>
+            <td class="px-3 py-2">${escapeHTML(r.xuLy ?? '')}</td>
           </tr>
         `).join("");
 
@@ -167,15 +194,16 @@
                   <th class="px-3 py-2">Đại lý</th>
                   <th class="px-3 py-2">Nội dung</th>
                   <th class="px-3 py-2">Nhân viên</th>
-                  <th class="px-3 py-2">Xử lý</th>
+                  <th class="px-3 py-2">Trạng thái xử lý</th>
                 </tr>
               </thead>
-              <tbody>${rows}</tbody>
+              <tbody>${htmlRows}</tbody>
             </table>
           </div>`;
       } catch (e) {
-        console.error(e);
+        console.error("searchData error:", e);
         alert("❌ Lỗi lấy dữ liệu tìm kiếm!");
+        box.innerHTML = "";
       }
     }
 
