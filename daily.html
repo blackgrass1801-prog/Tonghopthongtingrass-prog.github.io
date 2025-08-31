@@ -24,8 +24,8 @@
         </h2>
 
         <div class="mt-6 grid grid-cols-1 gap-4">
-          <label class="text-sm font-semibold" for="daily">Đại lý</label>
-          <input id="daily" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên đại lý" />
+          <label class="text-sm font-semibold" for="daiLy">Đại lý</label>
+          <input id="daiLy" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên đại lý" />
 
           <label class="text-sm font-semibold mt-3" for="noiDung">Nội dung</label>
           <textarea id="noiDung" rows="4" class="w-full border rounded-lg p-3" placeholder="Nhập nội dung"></textarea>
@@ -60,8 +60,8 @@
         </h2>
 
         <div class="mt-6 grid grid-cols-1 gap-4">
-          <label class="text-sm font-semibold" for="searchDaily">Tìm theo Đại lý</label>
-          <input id="searchDaily" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập từ khóa đại lý" />
+          <label class="text-sm font-semibold" for="searchdaiLy">Tìm theo Đại lý</label>
+          <input id="searchdaiLy" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập từ khóa đại lý" />
 
           <label class="text-sm font-semibold" for="searchNoiDung">Tìm theo Nội dung</label>
           <input id="searchNoiDung" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập từ khóa nội dung" />
@@ -92,13 +92,13 @@
 
     // ===== UPLOAD =====
     async function submitData() {
-      const daily     = document.getElementById("daily").value.trim();
+      const daiLy     = document.getElementById("daiLy").value.trim();
       const noiDung   = document.getElementById("noiDung").value.trim();
       const employee  = document.getElementById("employee").value.trim();
       const xuLy      = document.getElementById("xuLy").value.trim();
       const fileInput = document.getElementById("file").files[0];
 
-      if (!daily || !noiDung || !employee || !xuLy) {
+      if (!daiLy || !noiDung || !employee || !xuLy) {
         alert("⚠️ Vui lòng nhập đầy đủ: Đại lý, Nội dung, Nhân viên, Xử lý.");
         return;
       }
@@ -117,8 +117,8 @@
       try {
         const res = await fetch(WEB_APP_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ daily, noiDung, employee, xuLy, fileName, mimeType, base64: fileData })
+          // headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ daiLy, noiDung, employee, xuLy, fileName, mimeType, base64: fileData })
         });
         await res.json();
         alert("✅ Đã lưu thành công!");
@@ -130,7 +130,7 @@
 
     // ===== TÌM KIẾM =====
     async function searchData() {
-      const searchDaily   = document.getElementById("searchDaily").value.trim().toLowerCase();
+      const searchdaiLy   = document.getElementById("searchdaiLy").value.trim().toLowerCase();
       const searchNoiDung = document.getElementById("searchNoiDung").value.trim().toLowerCase();
       const searchXuLy    = document.getElementById("searchXuLy").value.trim().toLowerCase();
 
@@ -139,7 +139,7 @@
         const data = await res.json();
 
         const results = (Array.isArray(data) ? data : []).filter(row =>
-          (!searchDaily   || String(row.daily   || "").toLowerCase().includes(searchDaily)) &&
+          (!searchdaiLy   || String(row.daiLy   || "").toLowerCase().includes(searchdaiLy)) &&
           (!searchNoiDung || String(row.noiDung || "").toLowerCase().includes(searchNoiDung)) &&
           (!searchXuLy    || String(row.xuLy    || "").toLowerCase() === searchXuLy)
         );
@@ -152,7 +152,7 @@
 
         const rows = results.map(r => `
           <tr class="border-b">
-            <td class="px-3 py-2">${escapeHTML(r.daily)}</td>
+            <td class="px-3 py-2">${escapeHTML(r.daiLy)}</td>
             <td class="px-3 py-2">${escapeHTML(r.noiDung)}</td>
             <td class="px-3 py-2">${escapeHTML(r.employee)}</td>
             <td class="px-3 py-2">${escapeHTML(r.xuLy)}</td>
