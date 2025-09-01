@@ -183,6 +183,9 @@
             <td class="px-3 py-2">${escapeHTML(r.noiDung ?? '')}</td>
             <td class="px-3 py-2">${escapeHTML(r.nhanVien ?? r.employee ?? '')}</td>
             <td class="px-3 py-2">${escapeHTML(r.xuLy ?? '')}</td>
+            <td class="px-3 py-2">
+              <a href="${fileUrl||viewUrl}" target="_blank" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-700">Xem chi tiết</a>
+            </td>  /// fileURL            
           </tr>
         `).join("");
 
@@ -195,6 +198,7 @@
                   <th class="px-3 py-2">Nội dung</th>
                   <th class="px-3 py-2">Nhân viên</th>
                   <th class="px-3 py-2">Trạng thái xử lý</th>
+                  <th class="px-3 py-2">Link File</th>                  
                 </tr>
               </thead>
               <tbody>${htmlRows}</tbody>
