@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SHBET — Nhóm lạm dụng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}
+    .soft-shadow{box-shadow:0 10px 25px rgba(0,0,0,.08)}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50">
+  <main class="w-full px-4 md:px-8 py-10">
+    <div class="mx-auto w-full max-w-screen-lg space-y-10">
+
+      <!-- 🚨 NHÓM LẠM DỤNG: FORM -->
+      <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
+        <h1 class="text-3xl font-extrabold text-center mb-6" style="color:#00A3C6;">BỘ PHẬN RỦI RO SHBET</h1>
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">🚨 Nhóm lạm dụng</h2>
+
+        <div class="mt-6 grid grid-cols-1 gap-4">
+          <label class="text-sm font-semibold" for="abuseTaiKhoan">Tên tài khoản</label>
+          <input id="abuseTaiKhoan" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên tài khoản" />
+
+          <label class="text-sm font-semibold mt-2" for="abuseNoiDung">Nội dung / hình thức lạm dụng</label>
+          <textarea id="abuseNoiDung" rows="4" class="w-full border rounded-lg p-3" placeholder="Mô tả chi tiết"></textarea>
+
+          <label class="text-sm font-semibold mt-2" for="abuseTroChoi">Trò chơi lạm dụng</label>
+          <select id="abuseTroChoi" class="w-full border rounded-lg p-3">
+            <option value="">-- Chọn --</option>
+            <option>Casino</option>
+            <option>Slot</option>
+            <option>Thể Thao</option>
+            <option>Game bài 3D</option>
+            <option>Xổ số</option>
+            <option>Tham gia bất thường, đăng nhập bất thường</option>
+            <option>Thông tin ảo, không chính chủ</option>
+          </select>
+
+          <label class="text-sm font-semibold mt-2" for="abuseNhanVien">Nhân viên</label>
+          <input id="abuseNhanVien" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập tên nhân viên" />
+
+          <label class="text-sm font-semibold mt-2" for="abuseXuLy">Xử lý</label>
+          <select id="abuseXuLy" class="w-full border rounded-lg p-3">
+            <option value="">-- Chọn trạng thái --</option>
+            <option>Cần theo dõi thêm</option>
+            <option>Đã xử lý và hỗ trợ tham gia theo dõi thêm</option>
+            <option>Đóng tài khoản</option>
+            <option>Đang đợi xin í kiến cấp trên</option>
+          </select>
+
+          <label class="text-sm font-semibold mt-2" for="abuseFile">Chọn file (Ảnh/Excel)</label>
+          <input id="abuseFile" type="file" class="w-full border rounded-lg p-3"
+                 accept=".png,.jpg,.jpeg,.webp,.pdf,.xlsx,.xls,.csv" />
+          <div id="abuseFilePreview" class="mt-2"></div>
+        </div>
+
+        <button id="btnAbuseUpload" onclick="submitAbuse()"
+                class="mt-6 inline-flex items-center gap-2 bg-rose-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-rose-700">
+          📤 Upload
+        </button>
+      </section>
+
+      <!-- 🔎 TÌM KIẾM LẠM DỤNG -->
+      <section class="glass soft-shadow rounded-2xl p-6 md:p-8 w-full">
+        <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">🔎 Tìm kiếm Dữ liệu (Lạm dụng)</h2>
+
+        <div class="mt-6 grid grid-cols-1 gap-4">
+          <label class="text-sm font-semibold" for="sAbuseTK">Tìm theo Tên tài khoản</label>
+          <input id="sAbuseTK" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập từ khóa" />
+
+          <label class="text-sm font-semibold" for="sAbuseND">Tìm theo Nội dung</label>
+          <input id="sAbuseND" type="text" class="w-full border rounded-lg p-3" placeholder="Nhập từ khóa nội dung" />
+
+          <label class="text-sm font-semibold" for="sAbuseXL">Tìm theo Trạng thái xử lý</label>
+          <select id="sAbuseXL" class="w-full border rounded-lg p-3">
+            <option value="--all--">-- Tất cả --</option>
+            <option value="Cần theo dõi thêm">Cần theo dõi thêm</option>
+            <option value="Đã xử lý và hỗ trợ tham gia theo dõi thêm">Đã xử lý và hỗ trợ tham gia theo dõi thêm</option>
+            <option value="Đóng tài khoản">Đóng tài khoản</option>
+            <option value="Đang đợi xin í kiến cấp trên">Đang đợi xin í kiến cấp trên</option>
+          </select>
+        </div>
+
+        <button onclick="searchAbuse()" class="mt-6 inline-flex items-center gap-2 bg-sky-600 text-white font-semibold rounded-lg px-5 py-3 hover:bg-sky-700">
+          🔍 Tìm kiếm
+        </button>
+
+        <div id="abuseResults" class="mt-6 text-sm text-slate-700"></div>
+      </section>
+
+    </div>
+  </main>
+
+<script>
+/* ==== BẮT BUỘC: ĐỔI URL NÀY THÀNH WEB APP URL CỦA BẠN ==== */
+const WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+/* ===== Helpers ===== */
+function parseDriveId(url){const m=String(url||'').match(/\/file\/d\/([^/]+)\//);if(m&&m[1])return m[1];const m2=String(url||'').match(/[?&]id=([^&]+)/);return m2?m2[1]:''}
+function toDriveViewUrl(url){const id=parseDriveId(url);return id?`https://drive.google.com/uc?export=view&id=${id}`:url}
+function isImageByExt(name=''){return /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(name)}
+function escapeHTML(s){return String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function formatTimeVN(iso){if(!iso)return '—';const d=new Date(iso);if(isNaN(d))return escapeHTML(String(iso));return new Intl.DateTimeFormat('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).format(d)}
+function renderAttachmentCell({fileUrl,fileName,mimeType}){if(!fileUrl&&!fileName)return'<span class="text-slate-400">—</span>';const viewUrl=toDriveViewUrl(fileUrl||'');const isImg=viewUrl?.startsWith('http')&&((mimeType||'').startsWith('image/')||isImageByExt(fileName||''));if(isImg){return `<div class="flex items-center gap-3"><a href="${fileUrl||viewUrl}" target="_blank"><img src="${viewUrl}" class="h-12 w-12 object-cover rounded border" /></a><a href="${fileUrl||viewUrl}" target="_blank" class="text-sky-700 hover:underline truncate max-w-[220px]">${escapeHTML(fileName||'Ảnh đính kèm')}</a></div>`}const name=escapeHTML(fileName||'Tệp đính kèm');return `<a href="${fileUrl||viewUrl}" target="_blank" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-700">📎 <span class="truncate max-w-[240px]">${name}</span></a>`}
+
+/* ===== Preview file ===== */
+document.getElementById('abuseFile').addEventListener('change', e=>{
+  const f=e.target.files?.[0], box=document.getElementById('abuseFilePreview'); if(!f){box.innerHTML='';return;}
+  const isImg=f.type.startsWith('image/')||isImageByExt(f.name); const size=(f.size/1024).toFixed(1)+' KB';
+  if(isImg){const url=URL.createObjectURL(f); box.innerHTML=`<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border">
+      <img src="${url}" class="h-16 w-16 object-cover rounded"/>
+      <div class="min-w-0"><div class="font-medium truncate">${escapeHTML(f.name)}</div>
+      <div class="text-xs text-slate-500">${escapeHTML(f.type||'image')}, ${size}</div></div></div>`}
+  else{box.innerHTML=`<div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border">
+      <div class="h-10 w-10 bg-slate-200 rounded flex items-center justify-center">📎</div>
+      <div class="min-w-0"><div class="font-medium truncate">${escapeHTML(f.name)}</div>
+      <div class="text-xs text-slate-500">${escapeHTML(f.type||'file')}, ${size}</div></div></div>`}
+});
+
+/* ===== Upload abuse ===== */
+async function submitAbuse(){
+  const taiKhoan=document.getElementById('abuseTaiKhoan').value.trim();
+  const noiDung =document.getElementById('abuseNoiDung').value.trim();
+  const troChoi =document.getElementById('abuseTroChoi').value;
+  const nhanVien=document.getElementById('abuseNhanVien').value.trim();
+  const xuLy    =document.getElementById('abuseXuLy').value;
+  const file    =document.getElementById('abuseFile').files[0];
+
+  if(!taiKhoan || !noiDung || !nhanVien || !xuLy){
+    alert('⚠️ Vui lòng nhập đủ: Tài khoản, Nội dung, Nhân viên, Xử lý.'); return;
+  }
+
+  let fileName="", mimeType="", base64="", fileSize=0;
+  if(file){
+    fileName=file.name; mimeType=file.type||''; fileSize=file.size||0;
+    const reader=new FileReader();
+    base64=await new Promise(rs=>{ reader.onload=e=>rs(String(e.target.result).split(',')[1]); reader.readAsDataURL(file); });
+  }
+
+  const btn=document.getElementById('btnAbuseUpload'); btn.disabled=true; btn.textContent='Đang gửi...';
+  try{
+    const res=await fetch(WEB_APP_URL,{
+      method:'POST',
+      // KHÔNG đặt Content-Type để tránh preflight của Apps Script
+      body: JSON.stringify({
+        dataset:'abuse', // 👈 quan trọng: ghi vào sheet "Abuse"
+        taiKhoan, noiDung, troChoi, nhanVien, xuLy,
+        fileName, mimeType, base64, fileSize,
+        timeSent: new Date().toISOString()
+      })
+    });
+    const json=await res.json();
+    if(!res.ok || !json.ok) throw new Error(json.error || ('HTTP '+res.status));
+    alert('✅ Đã lưu báo cáo lạm dụng!');
+    // clear
+    ['abuseTaiKhoan','abuseNoiDung','abuseNhanVien'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('abuseTroChoi').value='';
+    document.getElementById('abuseXuLy').value='';
+    document.getElementById('abuseFile').value='';
+    document.getElementById('abuseFilePreview').innerHTML='';
+  }catch(err){
+    console.error(err); alert('❌ Lỗi khi lưu: '+err.message);
+  }finally{
+    btn.disabled=false; btn.textContent='📤 Upload';
+  }
+}
+
+/* ===== Search abuse ===== */
+async function searchAbuse(){
+  const kwTK =document.getElementById('sAbuseTK').value.trim().toLowerCase();
+  const kwND =document.getElementById('sAbuseND').value.trim().toLowerCase();
+  const pick =document.getElementById('sAbuseXL').value;
+
+  const box=document.getElementById('abuseResults');
+  box.innerHTML="<p class='text-slate-500'>Đang tải dữ liệu...</p>";
+
+  try{
+    const res =await fetch(WEB_APP_URL+'?dataset=abuse&action=list',{method:'GET',cache:'no-store'});
+    const json=await res.json();
+    if(!res.ok || !json.ok) throw new Error(json.error || ('HTTP '+res.status));
+
+    const rows=Array.isArray(json.rows)?json.rows:[];
+    const filtered=rows.filter(r=>{
+      const tk=String(r.taiKhoan||'').toLowerCase();
+      const nd=String(r.noiDung ||'').toLowerCase();
+      const xl=String(r.xuLy    ||'');
+      const passTK=!kwTK || tk.includes(kwTK);
+      const passND=!kwND || nd.includes(kwND);
+      const passXL=(pick==='--all--'||pick===''||xl===pick);
+      return passTK && passND && passXL;
+    });
+
+    if(!filtered.length){
+      box.innerHTML="<p class='text-red-600'>❌ Không tìm thấy dữ liệu phù hợp</p>";
+      return;
+    }
+
+    const htmlRows = filtered.map(r=>{
+      const taiKhoan = escapeHTML(r.taiKhoan||'');
+      const noiDung  = escapeHTML(r.noiDung ||'');
+      const troChoi  = escapeHTML(r.troChoi ||'');
+      const nhanVien = escapeHTML(r.nhanVien||'');
+      const xuLy     = escapeHTML(r.xuLy    ||'');
+
+      const fileUrl  = r.thumbUrl || r.viewURL || r.fileUrl || r.fileURL || '';
+      const fileName = r.fileName || '';
+      const mimeType = r.mimeType || r.mimetype || '';
+      const attach   = renderAttachmentCell({fileUrl,fileName,mimeType});
+
+      const timeCell = formatTimeVN(r.timeSent || r.timestamp || '');
+      return `
+        <tr class="border-b align-top">
+          <td class="px-3 py-2">${taiKhoan}</td>
+          <td class="px-3 py-2">${noiDung}</td>
+          <td class="px-3 py-2">${troChoi}</td>
+          <td class="px-3 py-2">${nhanVien}</td>
+          <td class="px-3 py-2">${xuLy}</td>
+          <td class="px-3 py-2">${attach}</td>
+          <td class="px-3 py-2 whitespace-nowrap">${timeCell}</td>
+        </tr>`;
+    }).join('');
+
+    box.innerHTML = `
+      <div class="overflow-auto rounded-lg border">
+        <table class="min-w-full text-left text-sm">
+          <thead class="bg-slate-100 text-slate-700">
+            <tr>
+              <th class="px-3 py-2">Tài khoản</th>
+              <th class="px-3 py-2">Nội dung</th>
+              <th class="px-3 py-2">Trò chơi</th>
+              <th class="px-3 py-2">Nhân viên</th>
+              <th class="px-3 py-2">Xử lý</th>
+              <th class="px-3 py-2">Tệp đính kèm</th>
+              <th class="px-3 py-2">Thời gian</th>
+            </tr>
+          </thead>
+          <tbody>${htmlRows}</tbody>
+        </table>
+      </div>`;
+  }catch(err){
+    console.error(err); alert('❌ Lỗi tải dữ liệu: '+err.message); box.innerHTML='';
+  }
+}
+</script>
+</body>
+</html>
