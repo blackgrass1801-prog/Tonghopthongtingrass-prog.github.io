@@ -184,8 +184,8 @@
             <td class="px-3 py-2">${escapeHTML(r.nhanVien ?? r.employee ?? '')}</td>
             <td class="px-3 py-2">${escapeHTML(r.xuLy ?? '')}</td>
             <td class="px-3 py-2">
-              <a href="${r.fileUrl||r.viewUrl}" target="_blank" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-700">Xem chi tiết</a>
-            </td>  /// fileURL            
+              <a href="${r.fileURL||r.viewURL || '#'}" target="_blank" class="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-100 border text-slate-700">Xem chi tiết</a>
+            </td>           
           </tr>
         `).join("");
 
